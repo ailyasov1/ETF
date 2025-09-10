@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Google Sheet Viewer</title>
+  <style>
+    body { font-family: Arial, sans-serif; margin: 20px; }
+    input { margin-bottom: 10px; padding: 5px; width: 250px; }
+    table { border-collapse: collapse; width: 100%; margin-top: 10px; }
+    th, td { border: 1px solid #ddd; padding: 8px; }
+    th { background: #f4f4f4; }
+    tr:hover { background: #f9f9f9; }
+  </style>
+</head>
+<body>
+  <h2>Spreadsheet Data</h2>
+  <input type="text" id="searchBox" placeholder="Search...">
+  <table id="dataTable"></table>
+
+  <script>
+    const sheetID = "YOUR_SHEET_ID_HERE";
+    const sheetURL = `https://docs.google.com/spreadsheets/d/${sheetID}/gviz/tq?tqx=out:csv`;
+
+    async function loadSheet() {
+      const res = await fetch(sheetURL);
+      const text = await res.text();
+
+      // Parse CSV into rows
+      const rows = text.trim().split("\n").map(r => r.split(","));
+      const headers = rows[0];
+      const data = rows.slice(1);
+
+      // Render table
+      const table = document.getElementById("dataTable");
+      table.innerHTML = `
+        <thead><tr>${headers.map(h => `<th>${h}</th>`).join("")}</tr></thead>
+        <tbody>
+          ${data.map(row => `<tr>${row.map(cell => `<td>${cell}</td>`).join("")}</tr>`).join("")}
+        </tbody>
+      `;
+
+      // Add search
+      const searchBox = document.getElementById("searchBox");
+      searchBox.addEventListener("keyup", () => {
+        const filter = searchBox.value.toLowerCase();
+        const rows = table.querySelectorAll("tbody tr");
+        rows.forEach(r => {
+          r.style.display = r.innerText.toLowerCase().includes(filter) ? "" : "none";
+        });
+      });
+    }
+
+    loadSheet();
+  </script>
+</body>
+</html>
