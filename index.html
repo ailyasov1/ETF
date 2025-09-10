@@ -27,15 +27,15 @@
   <table id="dataTable"></table>
 
   <script>
-    const sheetID = "YOUR_SHEET_ID_HERE"; // Replace with your Sheet ID
-    const sheetURL = `https://docs.google.com/spreadsheets/d/${sheetID}/gviz/tq?tqx=out:csv`;
+    // Use your published Google Sheets CSV link
+    const sheetURL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vRXOVsmu2z54kKeh7PgD7MdBLuYUywHJnWk3bufz9ASblb7_cwcTvoHpfDm90JA3A/pub?output=csv";
 
     let headers = [];
     let data = [];
-    let sortState = { col: null, dir: null }; // keep track of sorting state
+    let sortState = { col: null, dir: null };
 
     async function loadSheet() {
-      const res = await fetch(sheetURL);
+      const res = await fetch(sheetURL + "&cacheBust=" + Date.now()); // prevent caching
       const text = await res.text();
 
       // Parse CSV into rows
@@ -46,13 +46,13 @@
       renderTable(headers, data);
       createFilters(headers, data);
 
-      // Add global search
+      // Global search
       document.getElementById("searchBox").addEventListener("keyup", applyFilters);
     }
 
     function createFilters(headers, data) {
       const filtersDiv = document.getElementById("filters");
-      filtersDiv.innerHTML = ""; // reset filters
+      filtersDiv.innerHTML = "";
       headers.forEach((header, colIndex) => {
         const uniqueValues = [...new Set(data.map(row => row[colIndex]))].sort();
         const select = document.createElement("select");
@@ -75,13 +75,11 @@
         return matchSearch && matchFilters;
       });
 
-      // Apply sorting if active
       if (sortState.col !== null) {
         filtered.sort((a, b) => {
           let valA = a[sortState.col];
           let valB = b[sortState.col];
 
-          // Try numeric comparison first
           let numA = parseFloat(valA);
           let numB = parseFloat(valB);
           if (!isNaN(numA) && !isNaN(numB)) {
@@ -101,7 +99,6 @@
     function renderTable(headers, rows) {
       const table = document.getElementById("dataTable");
 
-      // Build headers with sort click events
       const headerHTML = headers.map((h, i) => {
         let cls = "";
         if (sortState.col === i) cls = sortState.dir === "asc" ? "sorted-asc" : "sorted-desc";
@@ -114,7 +111,6 @@
 
       table.innerHTML = `<thead><tr>${headerHTML}</tr></thead><tbody>${bodyHTML}</tbody>`;
 
-      // Add sorting event listeners
       table.querySelectorAll("th").forEach(th => {
         th.addEventListener("click", () => {
           const col = parseInt(th.dataset.col);
