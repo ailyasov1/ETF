@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Google Sheet Viewer</title>
+  <style>
+    body { font-family: Arial, sans-serif; margin: 20px; }
+    input, select { margin: 5px; padding: 5px; }
+    table { border-collapse: collapse; width: 100%; margin-top: 10px; cursor: pointer; }
+    th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
+    th { background: #f4f4f4; position: relative; }
+    th.sorted-asc::after { content: " ▲"; }
+    th.sorted-desc::after { content: " ▼"; }
+    tr:hover { background: #f9f9f9; }
+  </style>
+</head>
+<body>
+  <h2>Spreadsheet Data</h2>
+  
+  <!-- Global Search -->
+  <input type="text" id="searchBox" placeholder="Search all columns...">
+  
+  <!-- Column Filters -->
+  <div id="filters"></div>
+
+  <!-- Data Table -->
+  <table id="dataTable"></table>
+
+  <script>
+    const sheetID = "YOUR_SHEET_ID_HERE"; // Replace with your Sheet ID
+    const sheetURL = `https://docs.google.com/spreadsheets/d/${sheetID}/gviz/tq?tqx=out:csv`;
+
+    let headers = [];
+    let data = [];
+    let sortState = { col: null, dir: null }; // keep track of sorting state
+
+    async function loadSheet() {
+      const res = await fetch(sheetURL);
+      const text = await res.text();
+
+      // Parse CSV into rows
+      const rows = text.trim().split("\n").map(r => r.split(","));
+      headers = rows[0];
+      data = rows.slice(1);
+
+      renderTable(headers, data);
+      createFilters(headers, data);
+
+      // Add global search
+      document.getElementById("searchBox").addEventListener("keyup", applyFilters);
+    }
+
+    function createFilters(headers, data) {
+      const filtersDiv = document.getElementById("filters");
+      filtersDiv.innerHTML = ""; // reset filters
+      headers.forEach((header, colIndex) => {
+        const uniqueValues = [...new Set(data.map(row => row[colIndex]))].sort();
+        const select = document.createElement("select");
+        select.innerHTML = `<option value="">Filter by ${header}</option>` +
+          uniqueValues.map(val => `<option value="${val}">${val}</option>`).join("");
+        select.dataset.colIndex = colIndex;
+        select.addEventListener("change", applyFilters);
+        filtersDiv.appendChild(select);
+      });
+    }
+
+    function applyFilters() {
+      const searchText = document.getElementById("searchBox").value.toLowerCase();
+      const selects = document.querySelectorAll("#filters select");
+      const filterValues = Array.from(selects).map(sel => ({ col: sel.dataset.colIndex, val: sel.value }));
+
+      let filtered = data.filter(row => {
+        const matchSearch = row.join(" ").toLowerCase().includes(searchText);
+        const matchFilters = filterValues.every(f => !f.val || row[f.col] === f.val);
+        return matchSearch && matchFilters;
+      });
+
+      // Apply sorting if active
+      if (sortState.col !== null) {
+        filtered.sort((a, b) => {
+          let valA = a[sortState.col];
+          let valB = b[sortState.col];
+
+          // Try numeric comparison first
+          let numA = parseFloat(valA);
+          let numB = parseFloat(valB);
+          if (!isNaN(numA) && !isNaN(numB)) {
+            valA = numA;
+            valB = numB;
+          }
+
+          if (valA < valB) return sortState.dir === "asc" ? -1 : 1;
+          if (valA > valB) return sortState.dir === "asc" ? 1 : -1;
+          return 0;
+        });
+      }
+
+      renderTable(headers, filtered);
+    }
+
+    function renderTable(headers, rows) {
+      const table = document.getElementById("dataTable");
+
+      // Build headers with sort click events
+      const headerHTML = headers.map((h, i) => {
+        let cls = "";
+        if (sortState.col === i) cls = sortState.dir === "asc" ? "sorted-asc" : "sorted-desc";
+        return `<th data-col="${i}" class="${cls}">${h}</th>`;
+      }).join("");
+
+      const bodyHTML = rows.map(row => 
+        `<tr>${row.map(cell => `<td>${cell}</td>`).join("")}</tr>`
+      ).join("");
+
+      table.innerHTML = `<thead><tr>${headerHTML}</tr></thead><tbody>${bodyHTML}</tbody>`;
+
+      // Add sorting event listeners
+      table.querySelectorAll("th").forEach(th => {
+        th.addEventListener("click", () => {
+          const col = parseInt(th.dataset.col);
+          if (sortState.col === col) {
+            sortState.dir = sortState.dir === "asc" ? "desc" : "asc";
+          } else {
+            sortState.col = col;
+            sortState.dir = "asc";
+          }
+          applyFilters();
+        });
+      });
+    }
+
+    loadSheet();
+  </script>
+</body>
+</html>
