@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>ETF Dashboard</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+  <style>
+    body { background-color: #0d1117; color: #e6edf3; }
+    .table-container { background: #161b22; border-radius: 12px; overflow: hidden; }
+    table { margin-bottom: 0; }
+    thead th { background-color: #161b22; color: #8b949e; text-transform: uppercase; font-size: 12px; cursor: pointer; }
+    tbody tr:hover { background: rgba(56, 139, 253, 0.1); }
+    th.sorted-asc::after { content: " ▲"; color: #58a6ff; }
+    th.sorted-desc::after { content: " ▼"; color: #58a6ff; }
+  </style>
+</head>
+<body>
+  <div class="container py-4">
+    <h2>ETF Market Dashboard</h2>
+    <input type="text" id="searchBox" class="form-control mb-3" placeholder="Search ETF...">
+    <div class="table-container">
+      <div class="table-responsive">
+        <table id="etfTable" class="table align-middle mb-0 text-white"></table>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const etfs = ["SPY","QQQ","VOO","IWM","DIA"]; // ETF tickers
+    const apiURL = `https://query1.finance.yahoo.com/v7/finance/quote?symbols=${etfs.join(",")}`;
+    let etfData = [];
+    let sortState = { col: null, dir: null };
+
+    async function loadETFs() {
+      const res = await fetch(apiURL);
+      const json = await res.json();
+      etfData = json.quoteResponse.result.map(item => ({
+        symbol: item.symbol,
+        name: item.shortName,
+        price: item.regularMarketPrice,
+        change: item.regularMarketChangePercent,
+        volume: item.regularMarketVolume,
+        marketCap: item.marketCap
+      }));
+      renderTable(etfData);
+      document.getElementById("searchBox").addEventListener("keyup", applySearch);
+    }
+
+    function applySearch() {
+      const searchText = document.getElementById("searchBox").value.toLowerCase();
+      const filtered = etfData.filter(e => 
+        e.symbol.toLowerCase().includes(searchText) || e.name.toLowerCase().includes(searchText)
+      );
+      renderTable(filtered);
+    }
+
+    function renderTable(data) {
+      const table = document.getElementById("etfTable");
+
+      const headers = ["Symbol","Name","Price","Change %","Volume","Market Cap"];
+      const headerHTML = headers.map((h, i) => {
+        let cls = "";
+        if (sortState.col === i) cls = sortState.dir === "asc" ? "sorted-asc" : "sorted-desc";
+        return `<th data-col="${i}" class="${cls}">${h}</th>`;
+      }).join("");
+
+      const bodyHTML = data.map(etf => `
+        <tr>
+          <td>${etf.symbol}</td>
+          <td>${etf.name}</td>
+          <td>$${etf.price.toFixed(2)}</td>
+          <td style="color:${etf.change>=0?'#16c784':'#ea3943'}">${etf.change.toFixed(2)}%</td>
+          <td>${etf.volume.toLocaleString()}</td>
+          <td>$${(etf.marketCap/1e9).toFixed(2)}B</td>
+        </tr>`).join("");
+
+      table.innerHTML = `<thead><tr>${headerHTML}</tr></thead><tbody>${bodyHTML}</tbody>`;
+
+      table.querySelectorAll("th").forEach((th, i) => {
+        th.addEventListener("click", () => {
+          if (sortState.col === i) {
+            sortState.dir = sortState.dir === "asc" ? "desc" : "asc";
+          } else {
+            sortState.col = i;
+            sortState.dir = "asc";
+          }
+          const sorted = [...data].sort((a, b) => {
+            let valA = Object.values(a)[i];
+            let valB = Object.values(b)[i];
+            if (typeof valA === "string") { valA = valA.toLowerCase(); valB = valB.toLowerCase(); }
+            if (valA < valB) return sortState.dir === "asc" ? -1 : 1;
+            if (valA > valB) return sortState.dir === "asc" ? 1 : -1;
+            return 0;
+          });
+          renderTable(sorted);
+        });
+      });
+    }
+
+    loadETFs();
+  </script>
+</body>
+</html>
