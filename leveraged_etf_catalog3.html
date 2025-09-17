@@ -240,26 +240,23 @@
         // Replace XXXXX with your Google Sheet ID
         const url = "https://docs.google.com/spreadsheets/d/e/2PACX-1vSRdNxts7-Z6YIjntsG_CRBUabu1qfTqotLz1YNWlwbgQG44AGreqPEGKJJEV0FJY1voR_9jyWGyw4Z/pub?output=csv";
         const resp = await fetch(url, { cache: "no-store" });
-const csvText = await resp.text();
+        if (!resp.ok) throw new Error("Failed to fetch Google Sheet CSV: " + resp.status);
+        const csvText = await resp.text();
 
-const lines = csvText.trim().split("\n");
-RAW = lines.slice(1).map(line => {
-  const cols = line.split(",");
+        // Convert CSV to array of objects
+        const lines = csvText.trim().split("
+");
+        const headers = lines[0].split(",").map(h => h.trim());
+        RAW = lines.slice(1).map(line => {
+          const cols = line.split(",");
+          const obj = {};
+          headers.forEach((h, i) => {
+            obj[h] = cols[i] ? cols[i].trim() : "";
+          });
+          return obj;
+        });
 
-  return {
-    Ticker: cols[0],
-    Name: cols[1],
-    Issuer: cols[2],
-    Underlying: cols[3],
-    Assets: parseFloat(cols[4].replace(/[$,]/g, "")) || 0,
-    Fee: parseFloat(cols[5]) || null,
-    Leverage: cols[6],
-    Direction: cols[7],
-    URL: cols[8] || ""
-  };
-});
-
-hydrate();
+        hydrate();
       } catch (err) {
         errorDiv.textContent = (err && err.message) ? err.message : String(err);
         errorDiv.classList.remove("hidden");
