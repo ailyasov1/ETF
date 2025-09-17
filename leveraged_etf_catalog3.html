@@ -235,25 +235,52 @@
 
     
     
+    
     // ---- Data bootstrap ----
     function parseCSV(csvText) {
+      const rows = [];
       const lines = csvText.trim().split(/
 ?
 /);
       const headers = lines[0].split(",").map(h => h.trim());
-      return lines.slice(1).map(line => {
-        const cols = line.split(",");
+
+      for (let i = 1; i < lines.length; i++) {
+        if (!lines[i].trim()) continue;
+        let cols = [];
+        let current = "";
+        let insideQuotes = false;
+
+        for (let char of lines[i]) {
+          if (char === '"') {
+            insideQuotes = !insideQuotes;
+          } else if (char === ',' && !insideQuotes) {
+            cols.push(current.trim());
+            current = "";
+          } else {
+            current += char;
+          }
+        }
+        cols.push(current.trim());
+
         const row = {};
-        headers.forEach((h, i) => {
-          row[h] = (cols[i] || "").trim();
+        headers.forEach((h, idx) => {
+          row[h] = cols[idx] || "";
         });
-        return row;
-      });
+        rows.push(row);
+      }
+
+      return rows;
+    }
+
+    function parseNumber(val) {
+      if (!val) return null;
+      return parseFloat(String(val).replace(/[^0-9.-]/g, "")) || null;
     }
 
     (async function bootstrap() {
       try {
-        const url = "https://docs.google.com/spreadsheets/d/e/2PACX-1vSRdNxts7-Z6YIjntsG_CRBUabu1qfTqotLz1YNWlwbgQG44AGreqPEGKJJEV0FJY1voR_9jyWGyw4Z/pub?output=csv";
+        // Replace XXXXX with your Google Sheet ID
+        const url = "https://docs.google.com/spreadsheets/d/e/2PACX-1vRy4-CVHi4Cy0pVDO72LuLi4XrpHGQqpPOf6esCKqBXd7Pilow15A-VLhP7dAqLgzggd6XHjMQ8pPmD/pub?output=csv";
         const resp = await fetch(url, { cache: "no-store" });
         if (!resp.ok) throw new Error("Failed to fetch Google Sheet CSV: " + resp.status);
         const csvText = await resp.text();
@@ -263,15 +290,16 @@
           Name: row["Name"] || "",
           Issuer: row["Issuer"] || "",
           Underlying: row["Underlying"] || "",
-          Assets: parseFloat((row["Assets"] || row[" Assets "] || "").replace(/[$,]/g, "")) || 0,
-          Fee: parseFloat(row["Fee"]) || null,
+          Assets: parseNumber(row["Assets"]),
+          Fee: parseNumber(row["Fee"]),
           Leverage: row["Leverage"] || "",
           Direction: row["Direction"] || "",
-          URL: row["URL"] || ""
+          URL: (row["URL"] || "").replace(/^UShttps?/, "https")
         }));
 
         hydrate();
       } catch (err) {
+        const errorDiv = document.getElementById("error");
         errorDiv.textContent = (err && err.message) ? err.message : String(err);
         errorDiv.classList.remove("hidden");
       }
