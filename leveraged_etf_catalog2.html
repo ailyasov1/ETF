@@ -68,18 +68,25 @@
       font-size: 12px; font-weight: 600;
     }
     table { width: 100%; border-collapse: collapse; }
+    
+   
     thead th {
       position: sticky; top: 64px;
       background: #f6f7fb; color: #667085; font-size: 12px; font-weight: 600;
       text-align: left; padding: 10px; border-bottom: 1px solid var(--border);
-      cursor: pointer;
     }
     tbody td { padding: 12px 10px; border-top: 1px solid var(--border); vertical-align: middle; }
     tbody tr:hover { background: #f9fafb; }
     .right { text-align: right; }
+    .mono { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; }
     .muted { color: var(--muted); }
     .error { color: #b91c1c; margin-top: 8px; }
     .hidden { display: none !important; }
+   
+    @media (max-width: 720px) {
+      input[type="search"] { width: 100%; }
+      thead th { top: 112px; }
+    }
   </style>
 </head>
 <body>
@@ -109,7 +116,39 @@
         </div>
         <div class="card stat">
           <div class="label">Issuers</div>
-          <div class="val">Direxion • GraniteShares • T-Rex • Tradr • Leverage Shares • Defiance</div>
+          <div class="val">Direxion • GraniteShares • T‑Rex • Tradr • Leverage Shares • Defiance</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Filters -->
+    <section id="filters" class="card pad hidden">
+      <div class="filters">
+        <div class="group">
+          <span class="muted" style="font-size:12px; font-weight:600;">Leverage</span>
+          <span id="levLo" class="pill" style="background:#f3f4f6;">-2x</span>
+          <input id="minSigned" type="range" step="0.5" />
+          <input id="maxSigned" type="range" step="0.5" />
+          <span id="levHi" class="pill" style="background:#f3f4f6;">+3x</span>
+        </div>
+
+        <div class="group">
+          <span class="muted" style="font-size:12px; font-weight:600;">Direction</span>
+          <select id="direction">
+            <option value="ALL">All</option>
+            <option value="Long">Long</option>
+            <option value="Inverse">Inverse</option>
+          </select>
+        </div>
+
+        <div class="group">
+          <span class="muted" style="font-size:12px; font-weight:600;">Issuer</span>
+          <select id="issuer"></select>
+        </div>
+
+        <div class="group">
+          <span class="muted" style="font-size:12px; font-weight:600;">Underlying</span>
+          <select id="underlying"></select>
         </div>
       </div>
     </section>
@@ -119,14 +158,16 @@
       <table id="table">
         <thead>
           <tr>
-            <th data-key="ticker">Ticker</th>
-            <th data-key="name">Name</th>
-            <th data-key="issuer">Issuer</th>
-            <th data-key="underlying">Underlying</th>
-            <th class="right" data-key="assets">Assets (M)</th>
-            <th class="right" data-key="fee">Fee %</th>
-            <th class="right" data-key="lev">Lev (±)</th>
-            <th data-key="dir">Dir</th>
+            <th class="sortable" data-key="#">#</th>
+            <th class="sortable" data-key="ticker">Ticker</th>
+            <th class="sortable" data-key="name">Name</th>
+            <th class="sortable" data-key="issuer">Issuer</th>
+            <th class="sortable" data-key="underlying">Underlying</th>
+            <th class="sortable right" data-key="assets">Assets (M)</th>
+            <th class="sortable right" data-key="fee">Fee %</th>
+            <th class="sortable right" data-key="lev">Lev (±)</th>
+            <th class="sortable" data-key="dir">Dir</th>
+            <th>Type</th>
             <th>Link</th>
           </tr>
         </thead>
@@ -135,87 +176,342 @@
     </section>
   </main>
 
-  <script>
-    const SHEET_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vRy4-CVHi4Cy0pVDO72LuLi4XrpHGQqpPOf6esCKqBXd7Pilow15A-VLhP7dAqLgzggd6XHjMQ8pPmD/pub?output=csv";
-    const tbody = document.querySelector("#table tbody");
-    const tableWrap = document.getElementById("tableWrap");
-    const errorDiv = document.getElementById("error");
-    const searchInput = document.getElementById("q");
+  <!-- Option A: inline data (paste JSON between the tags) -->
+  <!-- <script id="etf-data" type="application/json">[ { ... row ... }, { ... } ]</script> -->
 
+  <!-- Option B: fetch JSON from a URL (default levereged_etfs.json in same folder) -->
+  <script id="DATA_URL" data-url="leveraged_etfs.json"></script>
+
+  <script>
+    // ---- State ----
+    let RAW = [];
     let ROWS = [];
+    let FILTERED = [];
+
+    const ALLOWED_ISSUERS = [
+      "Direxion", "GraniteShares", "T-Rex", "Tradr", "Leverage Shares", "Defiance",
+    ];
+
+    const TICKER_GUESS = [
+      "AAPL","TSLA","NVDA","AMD","MSFT","META","AMZN","GOOGL","GOOG","NFLX",
+      "NIO","BABA","SHOP","COIN","UBER","IBM","INTC","T","V","MA","JPM","BAC",
+      "WMT","DIS","PYPL","PFE","XOM","CVX","NKE","SQ","PLTR","SOFI","SNAP","CRM",
+      "ORCL","BA","ABBV","ADI","MU","PANW","ASML","AVGO"
+    ];
+    const NAME_TO_TICKER = {
+      "tesla":"TSLA","apple":"AAPL","nvidia":"NVDA","advanced micro devices":"AMD","amd":"AMD",
+      "microsoft":"MSFT","meta":"META","facebook":"META","amazon":"AMZN","alphabet":"GOOGL","google":"GOOGL",
+      "netflix":"NFLX","nio":"NIO","alibaba":"BABA","shopify":"SHOP","coinbase":"COIN","uber":"UBER","ibm":"IBM",
+      "intel":"INTC","at&t":"T","visa":"V","mastercard":"MA","jpmorgan":"JPM","bank of america":"BAC","walmart":"WMT",
+      "disney":"DIS","paypal":"PYPL","pfizer":"PFE","exxon":"XOM","chevron":"CVX","nike":"NKE","block":"SQ",
+      "palantir":"PLTR","sofi":"SOFI","snap":"SNAP","salesforce":"CRM","oracle":"ORCL","boeing":"BA",
+      "abbvie":"ABBV","analog devices":"ADI","micron":"MU","palo alto networks":"PANW","asml":"ASML","broadcom":"AVGO"
+    };
+
     let sortKey = "assets";
     let sortDir = "desc";
 
-    async function fetchSheetData() {
-      const resp = await fetch(SHEET_URL, { cache: "no-store" });
-      if (!resp.ok) throw new Error("Failed to fetch Google Sheet: " + resp.status);
-      const text = await resp.text();
-      const rows = text.split("\n").map(r => r.split(","));
-      const headers = rows.shift().map(h => h.trim());
-      return rows.filter(r => r.length > 1).map(row => {
-        let obj = {};
-        row.forEach((val, i) => obj[headers[i]] = val.trim());
-        return obj;
-      });
-    }
+    // ---- Elements ----
+    const $ = (q) => document.querySelector(q);
+    const $$ = (q) => Array.from(document.querySelectorAll(q));
 
-    function render() {
-      const qnorm = searchInput.value.trim().toLowerCase();
-      let data = [...ROWS];
-
-      if (qnorm) {
-        data = data.filter(r =>
-          Object.values(r).some(v => String(v).toLowerCase().includes(qnorm))
-        );
-      }
-
-      data.sort((a, b) => {
-        if (!sortKey) return 0;
-        const av = a[sortKey] || "";
-        const bv = b[sortKey] || "";
-        if (!isNaN(av) && !isNaN(bv)) {
-          return (sortDir === "asc" ? av - bv : bv - av);
-        }
-        return (sortDir === "asc"
-          ? String(av).localeCompare(String(bv))
-          : String(bv).localeCompare(String(av)));
-      });
-
-      tbody.innerHTML = data.map(r => `
-        <tr>
-          <td>${r["Ticker"] || ""}</td>
-          <td>${r["Name"] || ""}</td>
-          <td>${r["Issuer"] || ""}</td>
-          <td>${r["Underlying"] || ""}</td>
-          <td class="right">${r["Fund Assets (M USD)"] || ""}</td>
-          <td class="right">${r["Expense Ratio"] || ""}</td>
-          <td class="right">${r["Lev"] || ""}</td>
-          <td>${r["Dir"] || ""}</td>
-          <td>${r["URL"] ? `<a href="${r["URL"]}" target="_blank">Link</a>` : ""}</td>
-        </tr>`).join("");
-    }
-
-    document.querySelectorAll("th[data-key]").forEach(th =>
-      th.addEventListener("click", () => {
-        const key = th.dataset.key;
-        if (sortKey === key) sortDir = sortDir === "asc" ? "desc" : "asc";
-        else { sortKey = key; sortDir = "asc"; }
-        render();
-      })
-    );
+    const searchInput = $("#q");
+    const filters = $("#filters");
+    const tableWrap = $("#tableWrap");
+    const tbody = $("#table tbody");
+    const issuerSel = $("#issuer");
+    const underlyingSel = $("#underlying");
+    const dirSel = $("#direction");
+    const minRange = $("#minSigned");
+    const maxRange = $("#maxSigned");
+    const levLo = $("#levLo");
+    const levHi = $("#levHi");
+    const errorDiv = $("#error");
 
     searchInput.addEventListener("input", render);
+    dirSel.addEventListener("change", render);
+    issuerSel.addEventListener("change", render);
+    underlyingSel.addEventListener("change", render);
+    minRange.addEventListener("input", render);
+    maxRange.addEventListener("input", render);
+    $$(".sortable").forEach(th => th.addEventListener("click", () => onSort(th)));
 
+    // ---- Data bootstrap ----
     (async function bootstrap() {
       try {
-        ROWS = await fetchSheetData();
-        tableWrap.classList.remove("hidden");
-        render();
+        const inline = document.getElementById("etf-data");
+        if (inline && inline.textContent.trim().startsWith("[")) {
+          RAW = JSON.parse(inline.textContent);
+        } else {
+          const urlTag = document.getElementById("DATA_URL");
+          const url = (urlTag?.dataset?.url || "leveraged_etfs.json").trim();
+          const resp = await fetch(url, { cache: "no-store" });
+          if (!resp.ok) throw new Error("Failed to fetch JSON: " + resp.status);
+          RAW = await resp.json();
+        }
+        hydrate();
       } catch (err) {
-        errorDiv.textContent = err.message;
+        errorDiv.textContent = (err && err.message) ? err.message : String(err);
         errorDiv.classList.remove("hidden");
       }
     })();
+
+    // ---- Helpers ----
+    function detectIssuer(name = "", fundType = "") {
+      const hay = (name + " " + fundType).toLowerCase();
+      const list = ALLOWED_ISSUERS;
+      for (const ix of list) if (hay.includes(ix.toLowerCase())) return ix;
+      return "Other";
+    }
+
+    function detectUnderlying(r) {
+      const explicit = r["Underlying"] || r["Underlying Asset"] || r["Reference Asset"] ||
+                       r["Underlying Ticker"] || r["Underlying Symbol"] || r["Underlying Equity"];
+      if (typeof explicit === "string" && explicit.trim()) {
+        return explicit.trim().toUpperCase();
+      }
+      const name = String(r["Name"] ?? "");
+      const ft   = String(r["Fund Type"] ?? "");
+      const seg  = String(r["segment"] ?? "");
+      const hay  = `${name} ${ft} ${seg}`;
+
+      const hayClean = hay
+        .replace(/\bT[-\s]?REX\b/gi, " ")
+        .replace(/\bREX\b/gi, " ")
+        .replace(/\bT\b(?=\s*-\s*REX\b)/gi, " ");
+
+      // (a) Parenthetical / separators
+      let m = hayClean.match(/[\(\[\-–—:\/]\s*([A-Z]{2,5})(?=[\)\]\s:\/\-])/);
+      if (m && m[1]) return m[1].toUpperCase();
+
+      // (b) Verbs
+      m = hayClean.match(/\b(on|tracking|linked to|based on|over|vs\.?|for)\s+([A-Z]{2,5})\b/i);
+      if (m && m[2]) return m[2].toUpperCase();
+
+      // (b2) After direction words
+      m = hayClean.match(/\b(Long|Short|Bull|Bear)\s+([A-Z]{2,5})\b/i);
+      if (m && m[2]) return m[2].toUpperCase();
+
+      // (c) Known tickers, skip 'T' unless AT&T
+      for (const sym of TICKER_GUESS) {
+        if (sym === "T") { if (/\bAT&T\b/i.test(hayClean)) return "T"; continue; }
+        if (new RegExp(`\\b${sym}\\b`, "i").test(hayClean)) return sym;
+      }
+
+      // (d) Company name → ticker
+      const lower = hayClean.toLowerCase();
+      for (const k in NAME_TO_TICKER) {
+        if (lower.includes(k)) return NAME_TO_TICKER[k];
+      }
+
+      // (e) Right before classification words
+      m = hayClean.match(/\b([A-Z]{2,5})\b\s+(?:Daily|Target|Bull|Bear|ETF|Shares)/);
+      if (m && m[1] && !/(?:^|\s)(?:T|REX)(?:\s|$)/i.test(m[1])) return m[1].toUpperCase();
+
+      // (f) Last resort
+      const STOP = new Set(["ETF","ETFS","BULL","BEAR","ULTRA","ULTRAPRO","ULTRASHORT","DAILY","SHARES","LEVERAGED",
+        "LONG","SHORT","INVERSE","PROSHARES","DIREXION","GRANITESHARES","T-REX","TRADR","LEVERAGE",
+        "DEFIANCE","SINGLE","STOCK","US","ON","OF","FOR","AND","VS","INDEX","TRACKING","LINKED","TO","X","REX","T"]);
+      const cands = (hayClean.match(/\b[A-Z]{1,5}\b/g) || [])
+        .map(t => t.toUpperCase())
+        .filter(t => t.length >= 2 && !STOP.has(t));
+      if (cands.length) return cands[0];
+      return "Unknown";
+    }
+
+    function hydrate() {
+      ROWS = (RAW || [])
+        .filter(r => {
+          const seg = String(r.segment ?? "");
+          const ft  = String(r["Fund Type"] ?? "");
+          const nm  = String(r["Name"] ?? "");
+          return /single/i.test(seg) || /single\s*-?\s*stock/i.test(ft) || /single\s*-?\s*stock/i.test(nm);
+        })
+        .map(r => {
+          const name = String(r["Name"] ?? "");
+          const ft   = String(r["Fund Type"] ?? "");
+          const hay  = name + " " + ft;
+
+          let dir = null;
+          if (/(bear|short|inverse|ultrashort)/i.test(hay)) dir = "Inverse";
+          else if (/(bull|long|ultra|ultrapro)/i.test(hay)) dir = "Long";
+
+          let lev = null;
+          let m = hay.match(/(\d+(?:\.\d+)?)x/i);
+          if (m) lev = Number(m[1]);
+          else if (/ultrapro/i.test(hay)) lev = 3;
+          else if (/ultrashort/i.test(hay)) lev = 2;
+          else if (/\bultra\b/i.test(hay)) lev = 2;
+
+          const signedLev = (lev == null) ? null : (dir === "Inverse" ? -Math.abs(lev) : Math.abs(lev));
+          const issuerDetected = detectIssuer(name, ft);
+          const underlyingDetected = detectUnderlying(r);
+          const url = r["URL"] || r["Url"] || r["url"] || null;
+
+          let cleanTicker = r["Ticker"];
+          if (typeof cleanTicker === "string") cleanTicker = cleanTicker.replace(/US$/i, "");
+
+          return {
+            ...r,
+            Ticker: cleanTicker,
+            issuerDetected,
+            underlyingDetected,
+            direction: dir,
+            leverage: lev,
+            signedLev,
+            url,
+          };
+        });
+
+      // Slider bounds
+      const maxAbs = Math.max(1, ...ROWS.map(r => Math.abs(r.signedLev ?? 0)));
+      minRange.min = -maxAbs; maxRange.min = -maxAbs;
+      minRange.max =  maxAbs; maxRange.max =  maxAbs;
+      minRange.value = Math.min(-2, -maxAbs);
+      maxRange.value = Math.max(3, maxAbs);
+      levLo.textContent = formatSigned(minRange.value) + "x";
+      levHi.textContent = formatSigned(maxRange.value) + "x";
+
+      // Dropdowns
+      const presentIssuers = Array.from(new Set(ROWS.map(r => r.issuerDetected).filter(ix => ALLOWED_ISSUERS.includes(ix))));
+      issuerSel.innerHTML = ["ALL", ...presentIssuers].map(x => `<option value="${esc(x)}">${esc(x)}</option>`).join("");
+      underlyingSel.innerHTML = ["ALL", ...Array.from(new Set(ROWS.map(r => String(r.underlyingDetected ?? "Unknown")))).sort((a,b)=>a.localeCompare(b))]
+        .map(x => `<option value="${esc(x)}">${esc(x)}</option>`).join("");
+
+      filters.classList.remove("hidden");
+      tableWrap.classList.remove("hidden");
+
+      render();
+    }
+
+    function formatSigned(v) {
+      const n = Number(v);
+      if (n > 0) return "+" + n;
+      return "" + n;
+    }
+
+    function render() {
+      // keep slider labels synced
+      levLo.textContent = formatSigned(minRange.value) + "x";
+      levHi.textContent = formatSigned(maxRange.value) + "x";
+
+      const lo = Math.min(Number(minRange.value), Number(maxRange.value));
+      const hi = Math.max(Number(minRange.value), Number(maxRange.value));
+
+      // filter
+      let base = ROWS.filter(r => {
+        if (issuerSel.value !== "ALL" && r.issuerDetected !== issuerSel.value) return false;
+        if (dirSel.value !== "ALL" && (r.direction ?? "—") !== dirSel.value) return false;
+        if (underlyingSel.value !== "ALL" && String(r.underlyingDetected ?? "Unknown") !== underlyingSel.value) return false;
+        if (r.signedLev != null) {
+          if (r.signedLev < lo || r.signedLev > hi) return false;
+        }
+        return true;
+      });
+
+      // search
+      const qnorm = searchInput.value.trim().toLowerCase();
+      if (qnorm) {
+        base = base.filter(r =>
+          String(r["Ticker"]).toLowerCase().includes(qnorm) ||
+          String(r["Name"]).toLowerCase().includes(qnorm) ||
+          String(r.issuerDetected).toLowerCase().includes(qnorm) ||
+          String(r.underlyingDetected).toLowerCase().includes(qnorm)
+        );
+      }
+
+      // sort
+      base.sort((a,b) => {
+        const dir = (sortDir === "asc") ? 1 : -1;
+        const num = x => (typeof x === "number" ? x : Number(String(x).replace(/[^0-9.\-]/g,"")) || 0);
+        switch (sortKey) {
+          case "ticker": return dir * String(a["Ticker"]).localeCompare(String(b["Ticker"]));
+          case "name": return dir * String(a["Name"]).localeCompare(String(b["Name"]));
+          case "issuer": return dir * String(a.issuerDetected).localeCompare(String(b.issuerDetected));
+          case "underlying": return dir * String(a.underlyingDetected).localeCompare(String(b.underlyingDetected));
+          case "lev": return dir * ((a.signedLev ?? 0) - (b.signedLev ?? 0));
+          case "fee": return dir * (num(a["Expense Ratio"]) - num(b["Expense Ratio"]));
+          case "assets":
+          default: return dir * (num(a["Fund Assets (M USD)"]) - num(b["Fund Assets (M USD)"]));
+        }
+      });
+
+      // render rows
+      tbody.innerHTML = base.map((row, i) => {
+        const levBadge = (row.signedLev == null)
+          ? `<span class="muted">—</span>`
+          : (row.signedLev > 0
+              ? `<span class="pill" style="background:var(--green-bg);color:var(--green-fg);">${"+" + row.signedLev + "x"}</span>`
+              : `<span class="pill" style="background:var(--red-bg);color:var(--red-fg);">${row.signedLev + "x"}</span>`);
+        const url = row.url ? `<a href="${esc(row.url)}" target="_blank" style="color:var(--blue);text-decoration:none;">Prospectus ↗</a>` : `<span class="muted">—</span>`;
+        const assets = (row["Fund Assets (M USD)"] != null) ? Number(row["Fund Assets (M USD)"]).toLocaleString() : "";
+        const fee = row["Expense Ratio"] ?? "";
+        return `<tr>
+          <td class="muted">${i+1}</td>
+          <td class="mono" style="font-weight:600;">${esc(row["Ticker"] ?? "")}</td>
+          <td>
+            <div style="font-weight:500">${esc(row["Name"] ?? "")}</div>
+            <div class="muted" style="font-size:12px">${esc(row["symbol"] ?? row["CUSIP"] ?? "")}</div>
+          </td>
+          <td>${esc(row.issuerDetected ?? "")}</td>
+          <td>${esc(row.underlyingDetected ?? "")}</td>
+          <td class="right mono">${assets}</td>
+          <td class="right mono">${esc(fee)}</td>
+          <td class="right">${levBadge}</td>
+          <td>${esc(row.direction ?? "—")}</td>
+          <td>${esc(row["Fund Type"] ?? "")}</td>
+          <td>${url}</td>
+        </tr>`;
+      }).join("");
+    }
+
+    function onSort(th) {
+      const key = th.dataset.key;
+      if (!key) return;
+      if (sortKey === key) {
+        sortDir = (sortDir === "asc") ? "desc" : "asc";
+      } else {
+        sortKey = key;
+        sortDir = "desc";
+      }
+      render();
+    }
+
+    function esc(s) {
+      return String(s ?? "").replace(/[&<>"']/g, c => ({
+        "&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#39;"
+      })[c]);
+    }
   </script>
+
+  <!-- Dynamic sticky header offset -->
+  <script>
+  (function() {
+    const theadSelector = "thead th";
+
+    function adjustStickyOffset() {
+      const topbar = document.querySelector("header.topbar");
+      if (!topbar) return;
+
+      const offset = topbar.getBoundingClientRect().height;
+      document.querySelectorAll(theadSelector).forEach(th => {
+        th.style.top = offset + "px";
+      });
+    }
+
+    window.addEventListener("load", adjustStickyOffset);
+    window.addEventListener("resize", adjustStickyOffset);
+
+    if (typeof ResizeObserver !== "undefined") {
+      const topbar = document.querySelector("header.topbar");
+      if (topbar) {
+        new ResizeObserver(adjustStickyOffset).observe(topbar);
+      }
+    }
+
+    setTimeout(adjustStickyOffset, 300);
+  })();
+  </script>
+
 </body>
 </html>
