@@ -68,13 +68,17 @@
       font-size: 12px; font-weight: 600;
     }
     table { width: 100%; border-collapse: collapse; }
+    
     thead th {
       position: sticky;
       /* top will be set dynamically via JS */
+      top: 0;
       background: #f6f7fb; color: #667085; font-size: 12px; font-weight: 600;
       text-align: left; padding: 10px; border-bottom: 1px solid var(--border);
       z-index: 5;
+      visibility: hidden; /* keep hidden until JS calculates correct top to avoid flicker/overlap */
     }
+
     tbody td { padding: 12px 10px; border-top: 1px solid var(--border); vertical-align: middle; }
     tbody tr:hover { background: #f9fafb; }
     .right { text-align: right; }
@@ -84,29 +88,11 @@
     .hidden { display: none !important; }
     @media (max-width: 720px) {
       input[type="search"] { width: 100%; }
-      /* no hardcoded top here either — JS handles it */
+      thead th {  }
     }
   </style>
 </head>
 <body>
-  <!-- your existing body content here ... -->
-
-  <!-- Dynamic sticky header offset script -->
-  <script>
-    function adjustTableHeaderOffset() {
-      const topbar = document.querySelector("header.topbar");
-      const theadCells = document.querySelectorAll("thead th");
-
-      if (topbar && theadCells.length) {
-        const offset = topbar.offsetHeight; // actual header height in px
-        theadCells.forEach(th => th.style.top = offset + "px");
-      }
-    }
-
-    window.addEventListener("load", adjustTableHeaderOffset);
-    window.addEventListener("resize", adjustTableHeaderOffset);
-  </script>
-</body>
   <header class="topbar">
     <div class="container row grow">
       <div class="row">
@@ -500,5 +486,73 @@
       })[c]);
     }
   </script>
+
+  <!-- Robust dynamic sticky-header offset: computes the total height of visible fixed/sticky elements above the table
+       and applies that as the `top` for each sticky <thead> cell. It also watches for resizes and DOM changes. -->
+  <script>
+  (function(){
+    const theadSelector = 'thead th';
+    function getStickyOffset(){
+      const nodes = Array.from(document.querySelectorAll('*'));
+      let maxBottom = 0;
+      for (const el of nodes) {
+        try {
+          const cs = window.getComputedStyle(el);
+          if (!cs) continue;
+          if (cs.position !== 'fixed' && cs.position !== 'sticky') continue;
+          if (cs.display === 'none' || el.offsetHeight === 0) continue;
+          // ignore elements that are part of a table (avoid counting the table's own thead/th)
+          if (el.closest && el.closest('table')) continue;
+          const rect = el.getBoundingClientRect();
+          // consider elements that are visible at/near the top of the viewport
+          if (rect.bottom > 0) {
+            maxBottom = Math.max(maxBottom, rect.bottom);
+          }
+        } catch (e) { /* ignore any cross-origin or computed-style errors */ }
+      }
+      return Math.ceil(maxBottom);
+    }
+
+    function adjust(){
+      const offset = getStickyOffset();
+      const heads = document.querySelectorAll(theadSelector);
+      if (!heads.length) return;
+      heads.forEach(th => {
+        th.style.top = offset + 'px';
+        th.style.visibility = 'visible';
+      });
+    }
+
+    // debounce helper
+    let t;
+    function schedule(){
+      clearTimeout(t);
+      t = setTimeout(adjust, 60);
+    }
+
+    window.addEventListener('load', schedule);
+    window.addEventListener('resize', schedule);
+
+    // watch the header (if present) for size changes
+    const topbar = document.querySelector('header.topbar');
+    if (topbar && typeof ResizeObserver !== 'undefined') {
+      try {
+        new ResizeObserver(schedule).observe(topbar);
+      } catch (e){}
+    }
+
+    // watch for DOM changes that could affect layout (filters being inserted/removed, etc.)
+    if (typeof MutationObserver !== 'undefined') {
+      try {
+        new MutationObserver(schedule).observe(document.body, { attributes: true, childList: true, subtree: true });
+      } catch (e){}
+    }
+
+    // run a couple times (fonts/layout can shift after load)
+    setTimeout(schedule, 200);
+    setTimeout(schedule, 800);
+  })();
+  </script>
+
 </body>
 </html>
