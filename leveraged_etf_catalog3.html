@@ -171,13 +171,22 @@
         <tbody></tbody>
       </table>
     </section>
-  </main>
+  
+  <section id="debugPanel" class="card pad" style="margin:16px; border:1px solid #e6e6e6;">
+    <div class="row" style="justify-content:space-between; align-items:center;">
+      <strong>Debug</strong>
+      <button id="debugToggle" class="btn" style="border:1px solid #e6e6e6; background:#fff; border-radius:8px; padding:4px 8px; cursor:pointer;">Hide</button>
+    </div>
+    <pre id="debugPre" style="white-space:pre-wrap; margin-top:8px; max-height:240px; overflow:auto; background:#f9fafb; padding:8px; border-radius:8px; border:1px solid #eee;"></pre>
+  </section>
+
+</main>
 
   <!-- Option A: inline data (paste JSON between the tags) -->
   <!-- <script id="etf-data" type="application/json">[ { ... row ... }, { ... } ]</script> -->
 
   <!-- Option B: fetch JSON from a URL (default levereged_etfs.json in same folder) -->
-  
+  <script id="DATA_URL" data-url="leveraged_etfs.json"></script>
 
   <script>
     // ---- State ----
@@ -234,78 +243,145 @@
     $$(".sortable").forEach(th => th.addEventListener("click", () => onSort(th)));
 
     
-    
-    
     // ---- Data bootstrap ----
-    function parseCSV(csvText) {
-      const rows = [];
-      const lines = csvText.trim().split(/
+    function detectDelimiter(headerLine) {
+      return (headerLine.indexOf('	') !== -1) ? '	' : ',';
+    }
+
+    function parseCSVWithDelimiter(text, delim) {
+      const lines = text.trim().split(/
 ?
 /);
-      const headers = lines[0].split(",").map(h => h.trim());
-
-      for (let i = 1; i < lines.length; i++) {
-        if (!lines[i].trim()) continue;
-        let cols = [];
-        let current = "";
-        let insideQuotes = false;
-
-        for (let char of lines[i]) {
-          if (char === '"') {
-            insideQuotes = !insideQuotes;
-          } else if (char === ',' && !insideQuotes) {
-            cols.push(current.trim());
-            current = "";
-          } else {
-            current += char;
-          }
+      if (!lines.length) return { headers: [], rows: [] };
+      const headerLine = lines[0];
+      let headers;
+      if (delim === ',') {
+        headers = [];
+        let cur = "", inside = false;
+        for (let ch of headerLine) {
+          if (ch === '"') inside = !inside;
+          else if (ch === ',' && !inside) { headers.push(cur.trim()); cur = ""; }
+          else cur += ch;
         }
-        cols.push(current.trim());
-
-        const row = {};
-        headers.forEach((h, idx) => {
-          row[h] = cols[idx] || "";
-        });
-        rows.push(row);
+        headers.push(cur.trim());
+      } else {
+        headers = headerLine.split('	').map(h => h.trim());
       }
 
-      return rows;
+      const rows = [];
+      for (let i = 1; i < lines.length; i++) {
+        const line = lines[i];
+        if (!line.trim()) continue;
+
+        if (delim === ',') {
+          let cols = [], cur = "", inside = false;
+          for (let ch of line) {
+            if (ch === '"') inside = !inside;
+            else if (ch === ',' && !inside) { cols.push(cur.trim()); cur = ""; }
+            else cur += ch;
+          }
+          cols.push(cur.trim());
+          while (cols.length < headers.length) cols.push("");
+          const obj = {};
+          headers.forEach((h, idx) => obj[h] = (cols[idx] || "").trim());
+          rows.push(obj);
+        } else {
+          const cols = line.split('	').map(c => c.trim());
+          const obj = {};
+          headers.forEach((h, idx) => obj[h] = (cols[idx] || "").trim());
+          rows.push(obj);
+        }
+      }
+      return { headers, rows };
     }
 
     function parseNumber(val) {
-      if (!val) return null;
-      return parseFloat(String(val).replace(/[^0-9.-]/g, "")) || null;
+      if (val == null) return null;
+      const n = parseFloat(String(val).replace(/[^0-9.\-]/g, ""));
+      return Number.isFinite(n) ? n : null;
+    }
+
+    function dbgInit() {
+      const btn = document.getElementById('debugToggle');
+      const pre = document.getElementById('debugPre');
+      if (btn) {
+        btn.addEventListener('click', () => {
+          const panel = document.getElementById('debugPre');
+          const showing = panel.style.display !== 'none';
+          panel.style.display = showing ? 'none' : 'block';
+          btn.textContent = showing ? 'Show' : 'Hide';
+        });
+      }
+      if (pre) pre.textContent = '';
+    }
+    function dbg(label, value) {
+      const pre = document.getElementById('debugPre');
+      if (!pre) return;
+      try {
+        const v = (typeof value === 'string') ? value :
+                  (value == null) ? String(value) :
+                  JSON.stringify(value, null, 2);
+        pre.textContent += `• ${label}: ${v}
+`;
+      } catch (e) {
+        pre.textContent += `• ${label}: [unserializable]
+`;
+      }
     }
 
     (async function bootstrap() {
       try {
-        // Replace XXXXX with your Google Sheet ID
+        dbgInit();
         const url = "https://docs.google.com/spreadsheets/d/e/2PACX-1vRy4-CVHi4Cy0pVDO72LuLi4XrpHGQqpPOf6esCKqBXd7Pilow15A-VLhP7dAqLgzggd6XHjMQ8pPmD/pub?output=csv";
+        dbg('fetchUrl', url);
         const resp = await fetch(url, { cache: "no-store" });
+        dbg('httpStatus', resp.status);
         if (!resp.ok) throw new Error("Failed to fetch Google Sheet CSV: " + resp.status);
         const csvText = await resp.text();
+        dbg('csvLength', csvText.length);
+        dbg('csvPreview', csvText.slice(0, 300));
 
-        RAW = parseCSV(csvText).map(row => ({
-          Ticker: row["Ticker"] || "",
-          Name: row["Name"] || "",
-          Issuer: row["Issuer"] || "",
-          Underlying: row["Underlying"] || "",
-          Assets: parseNumber(row["Assets"]),
-          Fee: parseNumber(row["Fee"]),
-          Leverage: row["Leverage"] || "",
-          Direction: row["Direction"] || "",
-          URL: (row["URL"] || "").replace(/^UShttps?/, "https")
+        const firstLine = csvText.split(/
+?
+/)[0] || '';
+        const delim = detectDelimiter(firstLine);
+        dbg('detectedDelimiter', delim === '	' ? 'TAB' : 'COMMA');
+
+        const parsed = parseCSVWithDelimiter(csvText, delim);
+        dbg('headers', parsed.headers);
+        dbg('rowCountRaw', parsed.rows.length);
+        if (!parsed.rows.length) throw new Error('Parsed 0 rows from sheet.');
+
+        RAW = parsed.rows.map(row => ({
+          Ticker: row["Ticker"] || row["ticker"] || "",
+          Name: row["Name"] || row["name"] || "",
+          Issuer: row["Issuer"] || row["issuer"] || "",
+          Underlying: row["Underlying"] || row["underlying"] || "",
+          Assets: parseNumber(row["Assets"] || row[" Assets "] || row["assets"]),
+          Fee: parseNumber(row["Fee"] || row["fee"]),
+          Leverage: row["Leverage"] || row["leverage"] || "",
+          Direction: row["Direction"] || row["direction"] || "",
+          URL: ((row["URL"] || row["Url"] || row["url"] || "") + "").replace(/^UShttps?/, "https")
         }));
 
+        dbg('RAW_length', RAW.length);
+        dbg('RAW_sample0', RAW[0]);
+
         hydrate();
+        setTimeout(() => {
+          try { dbg('ROWS_length_after_hydrate', (Array.isArray(ROWS) ? ROWS.length : '[not array]')); }
+          catch(e){ dbg('ROWS_length_error', String(e)); }
+        }, 100);
       } catch (err) {
-        const errorDiv = document.getElementById("error");
+        const errorDiv = document.getElementById("error") || document.createElement('div');
+        if (!errorDiv.id) { errorDiv.id = 'error'; document.body.prepend(errorDiv); }
         errorDiv.textContent = (err && err.message) ? err.message : String(err);
         errorDiv.classList.remove("hidden");
+        dbg('ERROR', (err && err.message) ? err.message : String(err));
       }
     })();
-
     // ---- Helpers ----
+
     function detectIssuer(name = "", fundType = "") {
       const hay = (name + " " + fundType).toLowerCase();
       const list = ALLOWED_ISSUERS;
