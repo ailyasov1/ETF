@@ -70,15 +70,9 @@
     table { width: 100%; border-collapse: collapse; }
     thead th {
       position: sticky;
-      top: 96px; /* bumped down from 64px */
+      top: 80px; /* instead of 96px */
       background: #f6f7fb;
-      color: #667085;
-      font-size: 12px;
-      font-weight: 600;
-      text-align: left;
-      padding: 10px;
-      border-bottom: 1px solid var(--border);
-      z-index: 5; /* keeps headers above rows */
+      z-index: 5;
     }
     tbody td { padding: 12px 10px; border-top: 1px solid var(--border); vertical-align: middle; }
     tbody tr:hover { background: #f9fafb; }
@@ -89,7 +83,7 @@
     .hidden { display: none !important; }
     @media (max-width: 720px) {
       input[type="search"] { width: 100%; }
-      thead th { top: 144px; }
+      thead th { top: 128px; } /* instead of 144px */
     }
   </style>
 </head>
