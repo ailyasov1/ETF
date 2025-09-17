@@ -327,69 +327,43 @@
     }
 
     function hydrate() {
-      ROWS = (RAW || [])
-        .filter(r => {
-          const seg = String(r.segment ?? "");
-          const ft  = String(r["Fund Type"] ?? "");
-          const nm  = String(r["Name"] ?? "");
-          return /single/i.test(seg) || /single\s*-?\s*stock/i.test(ft) || /single\s*-?\s*stock/i.test(nm);
-        })
-        .map(r => {
-          const name = String(r["Name"] ?? "");
-          const ft   = String(r["Fund Type"] ?? "");
-          const hay  = name + " " + ft;
+  ROWS = (RAW || []).map(r => {
+    const name = String(r["Name"] ?? "");
+    const ft   = String(r["Fund Type"] ?? "");
+    const hay  = name + " " + ft;
 
-          let dir = null;
-          if (/(bear|short|inverse|ultrashort)/i.test(hay)) dir = "Inverse";
-          else if (/(bull|long|ultra|ultrapro)/i.test(hay)) dir = "Long";
+    let dir = null;
+    if (/(bear|short|inverse|ultrashort)/i.test(hay)) dir = "Inverse";
+    else if (/(bull|long|ultra|ultrapro)/i.test(hay)) dir = "Long";
 
-          let lev = null;
-          let m = hay.match(/(\d+(?:\.\d+)?)x/i);
-          if (m) lev = Number(m[1]);
-          else if (/ultrapro/i.test(hay)) lev = 3;
-          else if (/ultrashort/i.test(hay)) lev = 2;
-          else if (/\bultra\b/i.test(hay)) lev = 2;
+    let lev = null;
+    let m = hay.match(/(\d+(?:\.\d+)?)x/i);
+    if (m) lev = Number(m[1]);
 
-          const signedLev = (lev == null) ? null : (dir === "Inverse" ? -Math.abs(lev) : Math.abs(lev));
-          const issuerDetected = detectIssuer(name, ft);
-          const underlyingDetected = detectUnderlying(r);
-          const url = r["URL"] || r["Url"] || r["url"] || null;
+    const signedLev = (lev == null) ? null : (dir === "Inverse" ? -Math.abs(lev) : Math.abs(lev));
+    const issuerDetected = detectIssuer(name, ft);
+    const underlyingDetected = detectUnderlying(r);
+    const url = r["URL"] || r["Url"] || r["url"] || null;
 
-          let cleanTicker = r["Ticker"];
-          if (typeof cleanTicker === "string") cleanTicker = cleanTicker.replace(/US$/i, "");
+    let cleanTicker = r["Ticker"];
+    if (typeof cleanTicker === "string") cleanTicker = cleanTicker.replace(/US$/i, "");
 
-          return {
-            ...r,
-            Ticker: cleanTicker,
-            issuerDetected,
-            underlyingDetected,
-            direction: dir,
-            leverage: lev,
-            signedLev,
-            url,
-          };
-        });
+    return {
+      ...r,
+      Ticker: cleanTicker,
+      issuerDetected,
+      underlyingDetected,
+      direction: dir,
+      leverage: lev,
+      signedLev,
+      url,
+    };
+  });
 
-      // Slider bounds
-      const maxAbs = Math.max(1, ...ROWS.map(r => Math.abs(r.signedLev ?? 0)));
-      minRange.min = -maxAbs; maxRange.min = -maxAbs;
-      minRange.max =  maxAbs; maxRange.max =  maxAbs;
-      minRange.value = Math.min(-2, -maxAbs);
-      maxRange.value = Math.max(3, maxAbs);
-      levLo.textContent = formatSigned(minRange.value) + "x";
-      levHi.textContent = formatSigned(maxRange.value) + "x";
-
-      // Dropdowns
-      const presentIssuers = Array.from(new Set(ROWS.map(r => r.issuerDetected).filter(ix => ALLOWED_ISSUERS.includes(ix))));
-      issuerSel.innerHTML = ["ALL", ...presentIssuers].map(x => `<option value="${esc(x)}">${esc(x)}</option>`).join("");
-      underlyingSel.innerHTML = ["ALL", ...Array.from(new Set(ROWS.map(r => String(r.underlyingDetected ?? "Unknown")))).sort((a,b)=>a.localeCompare(b))]
-        .map(x => `<option value="${esc(x)}">${esc(x)}</option>`).join("");
-
-      filters.classList.remove("hidden");
-      tableWrap.classList.remove("hidden");
-
-      render();
-    }
+  filters.classList.remove("hidden");
+  tableWrap.classList.remove("hidden");
+  render();
+}
 
     function formatSigned(v) {
       const n = Number(v);
