@@ -244,53 +244,27 @@
 
     
     // ---- Data bootstrap ----
+    function parseLines(text) {
+      return text.split("
+").map(l => l.replace(/
+/g,""));
+    }
+
     function detectDelimiter(headerLine) {
       return (headerLine.indexOf('	') !== -1) ? '	' : ',';
     }
 
     function parseCSVWithDelimiter(text, delim) {
-      const lines = text.trim().split(/
-?
-/);
+      const lines = parseLines(text);
       if (!lines.length) return { headers: [], rows: [] };
-      const headerLine = lines[0];
-      let headers;
-      if (delim === ',') {
-        headers = [];
-        let cur = "", inside = false;
-        for (let ch of headerLine) {
-          if (ch === '"') inside = !inside;
-          else if (ch === ',' && !inside) { headers.push(cur.trim()); cur = ""; }
-          else cur += ch;
-        }
-        headers.push(cur.trim());
-      } else {
-        headers = headerLine.split('	').map(h => h.trim());
-      }
-
+      const headers = lines[0].split(delim).map(h => h.trim());
       const rows = [];
       for (let i = 1; i < lines.length; i++) {
-        const line = lines[i];
-        if (!line.trim()) continue;
-
-        if (delim === ',') {
-          let cols = [], cur = "", inside = false;
-          for (let ch of line) {
-            if (ch === '"') inside = !inside;
-            else if (ch === ',' && !inside) { cols.push(cur.trim()); cur = ""; }
-            else cur += ch;
-          }
-          cols.push(cur.trim());
-          while (cols.length < headers.length) cols.push("");
-          const obj = {};
-          headers.forEach((h, idx) => obj[h] = (cols[idx] || "").trim());
-          rows.push(obj);
-        } else {
-          const cols = line.split('	').map(c => c.trim());
-          const obj = {};
-          headers.forEach((h, idx) => obj[h] = (cols[idx] || "").trim());
-          rows.push(obj);
-        }
+        if (!lines[i].trim()) continue;
+        const cols = lines[i].split(delim).map(c => c.trim());
+        const obj = {};
+        headers.forEach((h, idx) => obj[h] = (cols[idx] || "").trim());
+        rows.push(obj);
       }
       return { headers, rows };
     }
@@ -341,9 +315,8 @@
         dbg('csvLength', csvText.length);
         dbg('csvPreview', csvText.slice(0, 300));
 
-        const firstLine = csvText.split(/
-?
-/)[0] || '';
+        const firstLine = csvText.split("
+")[0] || '';
         const delim = detectDelimiter(firstLine);
         dbg('detectedDelimiter', delim === '	' ? 'TAB' : 'COMMA');
 
