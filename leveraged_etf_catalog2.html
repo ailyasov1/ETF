@@ -1,0 +1,110 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Leveraged Single-Stock ETF Catalog</title>
+  <style>
+    :root {
+      --bg: #fafafa;
+      --card: #ffffff;
+      --border: #e6e6e6;
+      --text: #0f172a;
+      --muted: #6b7280;
+      --accent: #111827;
+      --green-bg: #dcfce7;
+      --green-fg: #166534;
+      --red-bg: #ffe4e6;
+      --red-fg: #9f1239;
+      --blue: #2563eb;
+      --shadow: 0 1px 2px rgba(0,0,0,.04), 0 4px 12px rgba(0,0,0,.04);
+    }
+    * { box-sizing: border-box; }
+    html, body { height: 100%; }
+    body {
+      margin: 0;
+      background: linear-gradient(180deg, #fafafa, #fff);
+      color: var(--text);
+      font: 14px/1.45 system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji", "Segoe UI Emoji";
+    }
+    header.topbar {
+      position: sticky; top: 0; z-index: 10;
+      backdrop-filter: blur(8px);
+      background: rgba(255,255,255,.75);
+      border-bottom: 1px solid var(--border);
+    }
+    .container { max-width: 1120px; margin: 0 auto; padding: 16px; }
+    .brand {
+      display: grid; place-items: center;
+      width: 36px; height: 36px; border-radius: 12px;
+      background: #000; color: #fff; font-weight: 700;
+    }
+    .row { display: flex; align-items: center; gap: 12px; }
+    .row.grow { justify-content: space-between; }
+    h1 { font-size: 20px; font-weight: 600; margin: 0; letter-spacing: -0.01em; }
+    input[type="search"], select, .btn {
+      font: inherit;
+    }
+    input[type="search"] {
+      width: 320px; max-width: 60vw;
+      border: 1px solid var(--border);
+      border-radius: 12px; padding: 8px 12px;
+      background: #fff;
+    }
+    .card {
+      background: var(--card); border: 1px solid var(--border);
+      border-radius: 16px; box-shadow: var(--shadow);
+    }
+    .card.pad { padding: 16px; }
+    .stats { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; }
+    .stat { padding: 16px; }
+    .stat .label { font-size: 11px; text-transform: uppercase; letter-spacing: .06em; color: var(--muted); }
+    .stat .val { font-size: 22px; font-weight: 600; margin-top: 4px; }
+    .filters { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; }
+    .filters .group { display: flex; align-items: center; gap: 8px; }
+    .pill {
+      display: inline-flex; align-items: center; justify-content: center;
+      padding: 0 8px; height: 24px; border-radius: 999px;
+      font-size: 12px; font-weight: 600;
+    }
+    table { width: 100%; border-collapse: collapse; }
+    thead th {
+      position: sticky;
+      /* top will be set dynamically via JS */
+      background: #f6f7fb; color: #667085; font-size: 12px; font-weight: 600;
+      text-align: left; padding: 10px; border-bottom: 1px solid var(--border);
+      z-index: 5;
+    }
+    tbody td { padding: 12px 10px; border-top: 1px solid var(--border); vertical-align: middle; }
+    tbody tr:hover { background: #f9fafb; }
+    .right { text-align: right; }
+    .mono { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; }
+    .muted { color: var(--muted); }
+    .error { color: #b91c1c; margin-top: 8px; }
+    .hidden { display: none !important; }
+    @media (max-width: 720px) {
+      input[type="search"] { width: 100%; }
+      /* no hardcoded top here either — JS handles it */
+    }
+  </style>
+</head>
+<body>
+  <!-- your existing body content here ... -->
+
+  <!-- Dynamic sticky header offset script -->
+  <script>
+    function adjustTableHeaderOffset() {
+      const topbar = document.querySelector("header.topbar");
+      const theadCells = document.querySelectorAll("thead th");
+
+      if (topbar && theadCells.length) {
+        const offset = topbar.offsetHeight; // actual header height in px
+        theadCells.forEach(th => th.style.top = offset + "px");
+      }
+    }
+
+    window.addEventListener("load", adjustTableHeaderOffset);
+    window.addEventListener("resize", adjustTableHeaderOffset);
+  </script>
+</body>
+</html>
