@@ -295,8 +295,7 @@
         const v = (typeof value === 'string') ? value :
                   (value == null) ? String(value) :
                   JSON.stringify(value, null, 2);
-        pre.textContent += `• ${label}: ${v}
-`;
+        pre.textContent += "• " + label + ": " + v + "\n";
       } catch (e) {
         pre.textContent += `• ${label}: [unserializable]
 `;
