@@ -72,6 +72,7 @@
     
    
     thead th {
+      cursor: pointer;
       position: sticky; top: 64px;
       background: #f6f7fb; color: #667085; font-size: 12px; font-weight: 600;
       text-align: left; padding: 10px; border-bottom: 1px solid var(--border);
@@ -86,7 +87,8 @@
    
     @media (max-width: 720px) {
       input[type="search"] { width: 100%; }
-      thead th { top: 112px; }
+      thead th {
+      cursor: pointer; top: 112px; }
     }
   </style>
 </head>
@@ -159,6 +161,7 @@
       <table id="table">
         <thead>
           <tr>
+            <th data-key="#">#</th>
             <th class="sortable" data-key="#">#</th>
             <th class="sortable" data-key="ticker">Ticker</th>
             <th class="sortable" data-key="name">Name</th>
@@ -168,7 +171,8 @@
             <th class="sortable right" data-key="fee">Fee %</th>
             <th class="sortable right" data-key="lev">Lev (±)</th>
             <th class="sortable" data-key="dir">Dir</th>
-            <th>Type</th>
+            <th class="sortable" data-key="type">Type</th>
+            <th class="sortable" data-key="type">Type</th>
             <th>Link</th>
           </tr>
         </thead>
@@ -214,6 +218,15 @@
           url: r["URL"] || ""
         };
       });
+    }
+
+    
+    function populateFilters(rows) {
+      const issuers = Array.from(new Set(rows.map(r => r.issuer).filter(Boolean))).sort();
+      const underlyings = Array.from(new Set(rows.map(r => r.underlying).filter(Boolean))).sort();
+
+      issuerSel.innerHTML = '<option value="ALL">All</option>' + issuers.map(v => `<option value="${v}">${v}</option>`).join("");
+      underlyingSel.innerHTML = '<option value="ALL">All</option>' + underlyings.map(v => `<option value="${v}">${v}</option>`).join("");
     }
 
     // ---- State ----
@@ -274,7 +287,10 @@
       try {
         const sheetData = await fetchSheetData();
         RAW = normalizeSheetData(sheetData);
+        populateFilters(RAW);
         hydrate();
+        filters.classList.remove("hidden");
+        tableWrap.classList.remove("hidden");
       } catch (err) {
         errorDiv.textContent = (err && err.message) ? err.message : String(err);
         errorDiv.classList.remove("hidden");
