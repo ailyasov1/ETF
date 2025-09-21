@@ -117,6 +117,30 @@
       padding: 16px;
     }
 
+  
+    #filters input[type="range"] {
+      -webkit-appearance: none;
+      width: 120px;
+      height: 6px;
+      border-radius: 3px;
+      background: #e5e7eb;
+      cursor: pointer;
+    }
+    #filters input[type="range"]::-webkit-slider-runnable-track {
+      height: 6px;
+    }
+    #filters .range-container {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+    #filters .ticks {
+      display: flex;
+      justify-content: space-between;
+      font-size: 12px;
+      color: #6b7280;
+    }
+
   </style>
 </head>
 <body>
@@ -133,23 +157,19 @@
     </section>
 
     <section id="filters" class="card hidden">
-      <label>Direction
+      <label style="flex:1 1 100%; display:flex; flex-direction:column; gap:8px;">Leverage<div style="display:flex; align-items:center; gap:12px;"><input id="minSigned" type="range" min="-3" max="3" step="0.5" value="-3" /><input id="maxSigned" type="range" min="-3" max="3" step="0.5" value="3" /><span id="levDisplay" style="font-weight:600;"></span></div><div class="ticks"><span>-3</span><span>-2</span><span>-1</span><span>0</span><span>+1</span><span>+2</span><span>+3</span></div>
+        
+      </label><label>Direction
         <select id="direction">
           <option value="ALL">All</option>
           <option value="Long">Long</option>
           <option value="Inverse">Inverse</option>
         </select>
-      </label>
-      <label>Issuer
+      </label><label>Issuer
         <select id="issuer"></select>
-      </label>
-      <label>Underlying
+      </label><label>Underlying
         <select id="underlying"></select>
-      </label>
-      <label style="flex:1 1 100%; display:flex; flex-direction:column; gap:8px;">Leverage<div style="display:flex; align-items:center; gap:12px;"><input id="minSigned" type="range" min="-3" max="3" step="0.5" value="-3" /><input id="maxSigned" type="range" min="-3" max="3" step="0.5" value="3" /><span id="levDisplay" style="font-weight:600;"></span></div>
-        
-      </label>
-    </section>
+      </label></section>
 
     <section id="tableWrap" class="card hidden">
       <table id="table">
