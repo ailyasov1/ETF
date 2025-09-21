@@ -72,16 +72,235 @@
     .muted { color: var(--muted); }
     .error { color: #b91c1c; margin-top: 8px; }
     .hidden { display: none !important; }
+  
+    .lev-pos { color: #166534; background: #dcfce7; padding: 2px 6px; border-radius: 6px; }
+    .lev-neg { color: #9f1239; background: #ffe4e6; padding: 2px 6px; border-radius: 6px; }
+
+  
+    th.sortable.sorted-asc::after { content: " \25B2"; font-size: 0.8em; color: var(--muted); }
+    th.sortable.sorted-desc::after { content: " \25BC"; font-size: 0.8em; color: var(--muted); }
+
+  
+    mark.search-hit { background: yellow; color: inherit; padding: 0; }
+
+  
+    tbody tr:hover { background: #e0f2fe !important; } /* light blue */
+
+  
+    th.sticky-col, td.sticky-col {
+      position: sticky;
+      left: 0;
+      background: #fff;
+      z-index: 2;
+    }
+    th.sticky-col-2, td.sticky-col-2 {
+      position: sticky;
+      left: 50px; /* width of first column */
+      background: #fff;
+      z-index: 2;
+    }
+
+  
+    thead th {
+      box-shadow: 0 2px 4px rgba(0,0,0,0.08);
+      z-index: 3;
+    }
+
+  
+    #backToTop {
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      background: var(--blue);
+      color: #fff;
+      border: none;
+      border-radius: 999px;
+      padding: 10px 16px;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      box-shadow: var(--shadow);
+      display: none;
+      z-index: 50;
+    }
+    #backToTop:hover {
+      background: #1d4ed8;
+    }
+
+  
+    tbody tr:nth-child(even) {
+      background-color: #f9fafb;
+    }
+    tbody tr:hover {
+      background-color: #e0f2fe !important; /* keep hover highlight */
+    }
+
+  
+    tbody tr { cursor: pointer; }
+
+  
+    #summaryBar {
+      position: sticky;
+      bottom: 0;
+      background: #fff;
+      border-top: 1px solid var(--border);
+      padding: 8px 16px;
+      font-size: 14px;
+      display: flex;
+      justify-content: space-between;
+      box-shadow: 0 -2px 4px rgba(0,0,0,0.06);
+      z-index: 5;
+    }
+
+  
+    #exportBtn {
+      background: var(--blue);
+      color: #fff;
+      border: none;
+      border-radius: 6px;
+      padding: 6px 12px;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      box-shadow: var(--shadow);
+    }
+    #exportBtn:hover {
+      background: #1d4ed8;
+    }
+
+  
+    tfoot td {
+      font-weight: 600;
+      background: #f3f4f6;
+      border-top: 2px solid var(--border);
+      padding: 10px;
+    }
+
+  
+    #resetBtn {
+      background: #6b7280;
+      color: #fff;
+      border: none;
+      border-radius: 6px;
+      padding: 6px 12px;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      box-shadow: var(--shadow);
+    }
+    #resetBtn:hover {
+      background: #374151;
+    }
+
+  
+    #toggleFilters {
+      background: var(--blue);
+      color: #fff;
+      border: none;
+      border-radius: 6px;
+      padding: 6px 12px;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      box-shadow: var(--shadow);
+      margin-bottom: 10px;
+    }
+    #toggleFilters:hover {
+      background: #1d4ed8;
+    }
+
+  
+    #filters {
+      position: sticky;
+      top: 56px; /* below the header bar */
+      z-index: 8;
+    }
+
+  
+    body.dark {
+      --bg: #111827;
+      --card: #1f2937;
+      --border: #374151;
+      --text: #f9fafb;
+      --muted: #9ca3af;
+      --accent: #e5e7eb;
+      --green-bg: #064e3b;
+      --green-fg: #bbf7d0;
+      --red-bg: #7f1d1d;
+      --red-fg: #fecaca;
+      --blue: #3b82f6;
+    }
+    body.dark .brand { background: #f9fafb; color: #111827; }
+    body.dark table thead th { background: #374151; color: #d1d5db; }
+    body.dark #summaryBar { background: #1f2937; }
+
+  
+    #darkModeBtn {
+      margin-left: 10px;
+      background: transparent;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 6px 10px;
+      cursor: pointer;
+    }
+    body.dark #darkModeBtn { background: #374151; color: #f9fafb; }
+
+  
+    body.compact tbody td {
+      padding: 6px 8px;
+    }
+    body.compact thead th {
+      padding: 6px 8px;
+    }
+
+  
+    #colVisMenu {
+      position: absolute;
+      top: 50px;
+      right: 20px;
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 10px;
+      box-shadow: var(--shadow);
+      display: none;
+      z-index: 20;
+    }
+    #colVisMenu label {
+      display: block;
+      font-size: 13px;
+      margin-bottom: 4px;
+      cursor: pointer;
+    }
+    #colVisBtn {
+      margin-left: 10px;
+      background: transparent;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 6px 10px;
+      cursor: pointer;
+    }
+    body.dark #colVisMenu { background: #1f2937; }
+    body.dark #colVisBtn { background: #374151; color: #f9fafb; }
+
   </style>
 </head>
 <body>
   <header class="topbar">
     <div class="container row grow">
       <div class="row">
+        <button id="darkModeBtn">🌙 Dark Mode</button>
+        <button id="compactModeBtn">📏 Compact Mode</button>
+        <button id="colVisBtn">📑 Columns</button>
+        <div id="colVisMenu"></div>
         <div class="brand">LE</div>
         <h1>Leveraged Single-Stock ETF Catalog</h1>
       </div>
       <div class="row">
+        <button id="darkModeBtn">🌙 Dark Mode</button>
+        <button id="compactModeBtn">📏 Compact Mode</button>
+        <button id="colVisBtn">📑 Columns</button>
+        <div id="colVisMenu"></div>
         <input id="q" type="search" placeholder="Search ticker, name, issuer, underlying…" />
       </div>
     </div>
@@ -93,6 +312,7 @@
     </section>
 
     <!-- Filters -->
+    <button id="toggleFilters">Hide Filters</button>
     <section id="filters" class="card pad hidden">
       <div class="filters">
         <div class="group">
@@ -116,6 +336,7 @@
           <input id="minSigned" type="range" min="-3" max="3" step="0.5" value="-3" />
           <input id="maxSigned" type="range" min="-3" max="3" step="0.5" value="3" />
         </div>
+        <div class="group"><button id="resetBtn">Reset Filters</button></div>
       </div>
     </section>
 
@@ -124,8 +345,8 @@
       <table id="table">
         <thead>
           <tr>
-            <th data-key="#">#</th>
-            <th class="sortable" data-key="ticker">Ticker</th>
+            <th class="sticky-col" data-key="#">#</th>
+            <th class="sortable sticky-col-2" data-key="ticker">Ticker</th>
             <th class="sortable" data-key="name">Name</th>
             <th class="sortable" data-key="issuer">Issuer</th>
             <th class="sortable" data-key="underlying">Underlying</th>
@@ -138,8 +359,15 @@
           </tr>
         </thead>
         <tbody></tbody>
+        <tfoot><tr id="tableFooter"></tr></tfoot>
       </table>
     </section>
+  
+    <div id="summaryBar" class="hidden">
+      <div id="etfCount"></div>
+      <div id="etfAssets"></div>
+      <button id="exportBtn">Export CSV</button>
+    </div>
   </main>
 
   <script>
@@ -157,7 +385,23 @@
     const maxRange = document.getElementById("maxSigned");
 
     let RAW = [];
+    let LAST_RENDERED = [];
     let sortKey = "assets";
+
+
+    function highlight(text, query) {
+      if (!query) return text;
+      const regex = new RegExp("(" + query.replace(/[.*+?^${}()|[\]\\]/g, "\\$&") + ")", "ig");
+      return String(text).replace(regex, '<mark class="search-hit">$1</mark>');
+    }
+
+
+
+    function formatNumber(val, decimals=0) {
+      if (isNaN(val)) return "";
+      return Number(val).toLocaleString(undefined, { minimumFractionDigits: decimals, maximumFractionDigits: decimals });
+    }
+
     let sortDir = "desc";
 
     async function fetchSheetData() {
@@ -224,27 +468,59 @@
 
       // Render
       tbody.innerHTML = data.map((r, i) => `
+      
+      // Update table footer (total row)
+      const footerRow = document.getElementById("tableFooter");
+      if (footerRow) {
+        const totalAssets = data.reduce((sum, r) => sum + (r.assets || 0), 0);
+        const avgFee = data.length ? (data.reduce((sum, r) => sum + (r.fee || 0), 0) / data.length) : 0;
+        footerRow.innerHTML = `
+          <td colspan="5" class="right">Totals:</td>
+          <td class="right">${formatNumber(totalAssets, 0)}</td>
+          <td class="right">${formatNumber(avgFee, 2)}%</td>
+          <td colspan="4"></td>
+        `;
+      }
+
+      }
+
+      // Update summary bar
+      const totalAssets = data.reduce((sum, r) => sum + (r.assets || 0), 0);
+      document.getElementById("etfCount").textContent = data.length + " ETFs";
+      document.getElementById("etfAssets").textContent = "Total Assets: $" + formatNumber(totalAssets, 0) + "M";
+      document.getElementById("summaryBar").classList.remove("hidden");
+
         <tr>
-          <td>${i + 1}</td>
-          <td>${r.ticker}</td>
-          <td>${r.name}</td>
-          <td>${r.issuer}</td>
-          <td>${r.underlying}</td>
-          <td class="right">${r.assets}</td>
-          <td class="right">${r.fee}</td>
-          <td class="right">${r.lev}</td>
+          <td class="sticky-col">${i + 1}</td>
+          <td class="sticky-col-2">${highlight(r.ticker, qnorm)}</td>
+          <td>${highlight(r.name, qnorm)}</td>
+          <td>${highlight(r.issuer, qnorm)}</td>
+          <td>${highlight(r.underlying, qnorm)}</td>
+          <td class="right">${formatNumber(r.assets, 0)}</td>
+          <td class="right">${formatNumber(r.fee, 2)}</td>
+          <td class="right">${r.lev ? `<span class="${r.lev > 0 ? "lev-pos" : (r.lev < 0 ? "lev-neg" : "")}">${r.lev}</span>` : ""}</td>
           <td>${r.dir}</td>
-          <td>${r.type}</td>
+          <td>${highlight(r.type, qnorm)}</td>
           <td>${r.url ? `<a href="${r.url}" target="_blank">Link</a>` : ""}</td>
         </tr>`).join("");
     }
 
+    
     document.querySelectorAll("th.sortable").forEach(th =>
       th.addEventListener("click", () => {
         const key = th.dataset.key;
         if (sortKey === key) sortDir = sortDir === "asc" ? "desc" : "asc";
         else { sortKey = key; sortDir = "asc"; }
+        document.querySelectorAll("th.sortable").forEach(h => h.classList.remove("sorted-asc","sorted-desc"));
+        th.classList.add(sortDir === "asc" ? "sorted-asc" : "sorted-desc");
         render();
+
+        // Set default sort indicator on load
+        const defaultTh = document.querySelector('th[data-key="assets"]');
+        if (defaultTh) defaultTh.classList.add("sorted-desc");
+
+      })
+    );
       })
     );
 
@@ -263,11 +539,159 @@
         filters.classList.remove("hidden");
         tableWrap.classList.remove("hidden");
         render();
+
+        // Set default sort indicator on load
+        const defaultTh = document.querySelector('th[data-key="assets"]');
+        if (defaultTh) defaultTh.classList.add("sorted-desc");
+
       } catch (err) {
         errorDiv.textContent = err.message;
         errorDiv.classList.remove("hidden");
       }
     })();
+  
+    const backToTopBtn = document.getElementById("backToTop");
+    window.addEventListener("scroll", () => {
+      if (window.scrollY > 200) backToTopBtn.style.display = "block";
+      else backToTopBtn.style.display = "none";
+    });
+    backToTopBtn.addEventListener("click", () => {
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    });
+
+  
+    // Make entire row clickable if URL exists
+    tbody.addEventListener("click", (e) => {
+      let tr = e.target.closest("tr");
+      if (!tr) return;
+      const linkCell = tr.querySelector("td:last-child a");
+      if (linkCell && linkCell.href) {
+        window.open(linkCell.href, "_blank");
+      }
+    });
+
+  
+    function exportCSV(rows) {
+      if (!rows.length) return;
+      const headers = Object.keys(rows[0]);
+      const csv = [headers.join(",")].concat(
+        rows.map(r => headers.map(h => '"' + String(r[h] ?? "").replace(/"/g, '""') + '"').join(","))
+      ).join("\n");
+      const blob = new Blob([csv], { type: "text/csv" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = "etf_catalog.csv";
+      a.click();
+      URL.revokeObjectURL(url);
+    }
+
+    document.getElementById("exportBtn").addEventListener("click", () => {
+      exportCSV(LAST_RENDERED);
+    });
+
+  
+    const toggleFiltersBtn = document.getElementById("toggleFilters");
+    toggleFiltersBtn.addEventListener("click", () => {
+      if (filters.classList.contains("hidden")) {
+        filters.classList.remove("hidden");
+        toggleFiltersBtn.textContent = "Hide Filters";
+      } else {
+        filters.classList.add("hidden");
+        toggleFiltersBtn.textContent = "Show Filters";
+      }
+    });
+
+  
+    
+    // Persist theme preference
+    if (localStorage.getItem("theme") === "dark") {
+      document.body.classList.add("dark");
+      darkBtn.textContent = "☀️ Light Mode";
+    }
+
+    darkBtn.addEventListener("click", () => {
+      document.body.classList.toggle("dark");
+      if (document.body.classList.contains("dark")) {
+        localStorage.setItem("theme", "dark");
+        darkBtn.textContent = "☀️ Light Mode";
+      } else {
+        localStorage.setItem("theme", "light");
+        darkBtn.textContent = "🌙 Dark Mode";
+      }
+    });
+
+    });
+
+  
+    const compactBtn = document.getElementById("compactModeBtn");
+    if (localStorage.getItem("compact") === "true") {
+      document.body.classList.add("compact");
+      compactBtn.textContent = "📐 Normal Mode";
+    }
+    compactBtn.addEventListener("click", () => {
+      document.body.classList.toggle("compact");
+      if (document.body.classList.contains("compact")) {
+        localStorage.setItem("compact", "true");
+        compactBtn.textContent = "📐 Normal Mode";
+      } else {
+        localStorage.setItem("compact", "false");
+        compactBtn.textContent = "📏 Compact Mode";
+      }
+    });
+
+  
+    const colVisBtn = document.getElementById("colVisBtn");
+    const colVisMenu = document.getElementById("colVisMenu");
+    const table = document.getElementById("table");
+
+    // Column definitions (skip first # index)
+    const columns = Array.from(table.querySelectorAll("thead th")).map((th, i) => ({
+      index: i,
+      key: th.dataset.key || th.textContent.trim(),
+      label: th.textContent.trim(),
+      visible: true
+    }));
+
+    // Load saved preferences
+    const savedCols = JSON.parse(localStorage.getItem("colVisibility") || "null");
+    if (savedCols) {
+      savedCols.forEach((c, i) => {
+        if (c.visible === false) hideColumn(i);
+        columns[i].visible = c.visible;
+      });
+    }
+
+    // Build menu
+    colVisMenu.innerHTML = columns.map((c,i) =>
+      `<label><input type="checkbox" data-index="${i}" ${c.visible ? "checked" : ""}/> ${c.label}</label>`
+    ).join("");
+
+    // Show/hide menu
+    colVisBtn.addEventListener("click", () => {
+      colVisMenu.style.display = colVisMenu.style.display === "block" ? "none" : "block";
+    });
+
+    // Handle checkbox toggle
+    colVisMenu.addEventListener("change", (e) => {
+      const idx = parseInt(e.target.dataset.index);
+      if (e.target.checked) showColumn(idx); else hideColumn(idx);
+      columns[idx].visible = e.target.checked;
+      localStorage.setItem("colVisibility", JSON.stringify(columns));
+    });
+
+    function hideColumn(i) {
+      table.querySelectorAll("tr").forEach(tr => {
+        if (tr.children[i]) tr.children[i].style.display = "none";
+      });
+    }
+    function showColumn(i) {
+      table.querySelectorAll("tr").forEach(tr => {
+        if (tr.children[i]) tr.children[i].style.display = "";
+      });
+    }
+
   </script>
+<button id="backToTop">↑ Top</button>
 </body>
 </html>
