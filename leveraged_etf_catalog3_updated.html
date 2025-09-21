@@ -70,7 +70,7 @@
             <th data-key="fee">Fee %</th>
             <th data-key="lev">Lev (±)</th>
             <th data-key="dir">Dir</th>
-            <th>Link</th>
+            <th>Prospectus</th>
           </tr>
         </thead>
         <tbody></tbody>
@@ -190,7 +190,7 @@
           <td>${r.fee ? formatNumber(r.fee,2) + "%" : ""}</td>
           <td>${r.lev===0?"0x":`<span class="${r.lev>0?"lev-pos":"lev-neg"}">${r.lev>0? "+"+r.lev:r.lev}x</span>`}</td>
           <td>${r.dir}</td>
-          <td>${r.url?`<a href="${r.url}" target="_blank">Link</a>`:""}</td>
+          <td>${r.url?`<a href="${r.url}" target="_blank">Prospectus ↗</a>`:""}</td>
         </tr>`).join("");
     }
 
