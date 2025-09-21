@@ -1,3 +1,4 @@
+
 <!doctype html>
 <html lang="en">
 <head>
@@ -188,6 +189,39 @@
     }
 
   
+    input[type="search"] {
+      width: 320px;
+      max-width: 60vw;
+      border: 1px solid #d1d5db;
+      border-radius: 12px;
+      padding: 8px 12px;
+      background: #fff;
+      font: inherit;
+    }
+    @media (max-width: 720px) {
+      input[type="search"] { width: 100%; }
+    }
+    header .container {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+  
+    h1 {
+      font-size: 20px;
+      font-weight: 600;
+      margin: 0;
+      letter-spacing: -0.01em;
+    }
+
+  
+    #table td:nth-child(2),
+    #table td:nth-child(3) {
+      font-weight: 600;
+    }
+
+  
     #ticker-bar {
       overflow: hidden;
       white-space: nowrap;
@@ -208,8 +242,9 @@
       white-space: nowrap;
       animation: scroll 30s linear infinite;
     }
-    #ticker-bar:hover .scroll-inner {
-      animation-play-state: paused;
+    #ticker-bar:hover .scroll-inner,
+    #ticker-content:hover .scroll-inner {
+      animation-play-state: paused !important;
     }
     @keyframes scroll {
       from { transform: translateX(0); }
@@ -227,72 +262,28 @@
     #ticker-content .pos { color: #16a34a; font-weight: 600; }
     #ticker-content .neg { color: #dc2626; font-weight: 600; }
 
-  
-    /* Robust pause-on-hover support */
-    #ticker-bar:hover .scroll-inner,
-    #ticker-content:hover .scroll-inner {
-      animation-play-state: paused !important;
-    }
-
-  
-    /* Restore header title style */
-    h1 {
-      font-family: 'Inter', sans-serif;
-      font-size: 28px;
-      font-weight: 700;
-      color: #111827;
-      margin: 20px 0;
-      display: inline-block;
-    }
-    /* Restore search box style */
-    #table_filter input[type=search] {
-      font-family: 'Inter', sans-serif;
-      font-size: 14px;
-      border: 1px solid #d1d5db;
-      border-radius: 6px;
-      padding: 6px 10px;
-      margin-left: 8px;
-      outline: none;
-    }
-    #table_filter label {
-      font-family: 'Inter', sans-serif;
-      font-size: 14px;
-      font-weight: 500;
-      color: #111827;
-    }
-
-  
-    /* Align title and search box in same row */
-    .header-row {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 12px;
-    }
-    .header-row h1 {
-      margin: 0;
-    }
-    .header-row div.dataTables_filter {
-      margin: 0;
-    }
-
   </style>
 </head>
 <body>
   <header>
     <div class="container">
-      <div class="header-row"><h1>Leveraged Single-Stock ETF Catalog</h1><div id="search-placeholder"></div></div>
+      
+    <div style="display:flex; align-items:center; gap:12px;">
+      <div style="background:#111827; color:#fff; font-weight:700; font-size:14px; width:32px; height:32px; display:flex; align-items:center; justify-content:center; border-radius:6px;">LE</div>
+      <h1>Leveraged Single-Stock ETF Catalog</h1>
+    </div>
+
       <input id="q" type="search" placeholder="Search..." />
     </div>
   </header>
 
   <main class="container">
     <section class="card">
+      <div id="ticker-bar"><div id="ticker-content"></div></div>
       <div id="error" class="error hidden"></div>
     </section>
 
-    <div id="ticker-bar"><div id="ticker-content"></div></div>
-<section id="filters" class="card hidden">
+    <section id="filters" class="card hidden">
       <label style="flex:1 1 100%; display:flex; flex-direction:column; gap:8px;">Leverage<div style="display:flex; align-items:center; gap:12px;"><input id="minSigned" type="range" min="-3" max="3" step="0.5" value="-3" /><input id="maxSigned" type="range" min="-3" max="3" step="0.5" value="3" /><span id="levDisplay" style="font-weight:600;"></span></div>
         
       </label><label>Direction
@@ -492,7 +483,6 @@
     updateLevDisplay();
 
 
-
 async function updateTickerBar() {
   const tickerContent = document.getElementById("ticker-content");
   if (tickerContent) {
@@ -530,7 +520,6 @@ async function updateTickerBar() {
 
     tickerContent.innerHTML = html;
 
-    // Reset animation dynamically
     const inner = tickerContent.querySelector(".scroll-inner");
     if (inner) {
       const width = inner.scrollWidth;
@@ -538,19 +527,25 @@ async function updateTickerBar() {
       inner.style.animation = "none";
       inner.offsetHeight;
       inner.style.animation = `scroll ${duration}s linear infinite`;
-      // If currently hovered, keep it paused after rebuild
       const bar = document.getElementById('ticker-bar');
       if (bar && bar.matches(':hover')) {
         inner.style.animationPlayState = 'paused';
       }
-    });
+    }
+  } catch (e) {
+    console.error("Ticker fetch failed", e);
+    setTimeout(updateTickerBar, 15000);
+  }
+}
+
+document.addEventListener("DOMContentLoaded", () => {
+  setTimeout(updateTickerBar, 2000);
+});
 setInterval(updateTickerBar, 60000);
 const observer = new MutationObserver(updateTickerBar);
 observer.observe(document.querySelector("#table tbody"), { childList: true });
 
-
-
-// JS fallback for pause-on-hover
+// JS hover fallback
 (function(){
   const bar = document.getElementById('ticker-bar');
   function setPlayState(state){
@@ -562,16 +557,6 @@ observer.observe(document.querySelector("#table tbody"), { childList: true });
     bar.addEventListener('mouseleave', ()=>setPlayState('running'));
   }
 })();
-
-
-// Move search bar into header row on load
-document.addEventListener("DOMContentLoaded", () => {
-  const filter = document.getElementById("table_filter");
-  const placeholder = document.getElementById("search-placeholder");
-  if (filter && placeholder) {
-    placeholder.appendChild(filter);
-  }
-});
 
 </script>
 </body>
