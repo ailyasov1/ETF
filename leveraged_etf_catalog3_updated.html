@@ -198,6 +198,24 @@
       });
     }
 
+
+    function normalizeSheetData(data) {
+      return data.map(r => {
+        return {
+          ticker: r["Ticker"] || "",
+          name: r["Name"] || "",
+          issuer: r["Issuer"] || "",
+          underlying: r["Underlying"] || "",
+          assets: parseFloat((r["Fund Assets (M USD)"] || "0").replace(/[^0-9.]/g, "")) || 0,
+          fee: parseFloat((r["Expense Ratio"] || "0").replace(/[^0-9.]/g, "")) || 0,
+          lev: parseFloat((r["Lev"] || "0").replace(/[^0-9.+-]/g, "")) || 0,
+          dir: r["Dir"] || "",
+          type: r["Fund Type"] || r["segment"] || "",
+          url: r["URL"] || ""
+        };
+      });
+    }
+
     // ---- State ----
     let RAW = [];
     let ROWS = [];
@@ -254,7 +272,8 @@
     // ---- Data bootstrap ----
     (async function bootstrap() {
       try {
-        RAW = await fetchSheetData();
+        const sheetData = await fetchSheetData();
+        RAW = normalizeSheetData(sheetData);
         hydrate();
       } catch (err) {
         errorDiv.textContent = (err && err.message) ? err.message : String(err);
