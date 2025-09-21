@@ -1,132 +1,278 @@
 <!doctype html>
 <html lang="en">
 <head>
-  
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Leveraged Single-Stock ETF Catalog</title>
   <style>
-    :root {
-      --bg: #fafafa;
-      --card: #ffffff;
-      --border: #e6e6e6;
-      --text: #0f172a;
-      --muted: #6b7280;
-      --accent: #111827;
-      --green-bg: #dcfce7;
-      --green-fg: #166534;
-      --red-bg: #ffe4e6;
-      --red-fg: #9f1239;
-      --blue: #2563eb;
-      --shadow: 0 1px 2px rgba(0,0,0,.04), 0 4px 12px rgba(0,0,0,.04);
+    body { font:14px system-ui; background:#fafafa; color:#111; margin:0; }
+    header { background:#fff; border-bottom:1px solid #ccc; padding:12px; position:sticky; top:0; }
+    input[type="search"] { padding:6px; width:250px; }
+    .container { max-width:1120px; margin:0 auto; padding:16px; }
+    .card { background:#fff; border:1px solid #ddd; border-radius:8px; padding:12px; margin:12px 0; }
+    table { width:100%; border-collapse:collapse; table-layout:fixed; }
+    th, td { padding:8px 10px; border-bottom:1px solid #eee; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+    thead th { background:#f6f7fb; cursor:pointer; font-size:12px; font-weight:600; position:sticky; top:48px; }
+    tbody tr:hover { background:#f9fafb; }
+    .right { text-align:right; }
+    .lev-pos { color:#166534; background:#dcfce7; padding:2px 6px; border-radius:6px; }
+    .lev-neg { color:#9f1239; background:#ffe4e6; padding:2px 6px; border-radius:6px; }
+    .hidden { display:none; }
+  
+    #table thead th:nth-child(3) { width: 32%; }  /* Name */
+    #table thead th:nth-child(4) { width: 18%; }  /* Issuer */
+
+  
+    #table thead th:nth-child(10) { width: 12%; }  /* Dir */
+    #table thead th:nth-child(11) { width: 14%; }  /* Link */
+
+  
+    #table td a { text-decoration: none; color: #2563eb; }
+
+  
+    #table thead th:nth-child(2) { width: 12%; }  /* Ticker */
+    #table thead th:nth-child(5) { width: 18%; }  /* Underlying */
+    #table thead th:nth-child(6) { width: 12%; }  /* Assets */
+    #table thead th:nth-child(7) { width: 10%; }  /* Fee */
+    #table thead th:nth-child(8) { width: 10%; }  /* Leverage */
+    #table thead th:nth-child(9) { width: 10%; }  /* Dir */
+
+  
+    body { font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif; font-size:14px; }
+    thead th { padding: 12px 16px; }
+    tbody td { padding: 12px 16px; line-height: 1.5; }
+    tbody tr:hover { background-color: #f3f4f6; }
+    .card { border-radius: 12px; box-shadow: 0 2px 6px rgba(0,0,0,0.08); }
+
+  
+    thead th { text-align: left !important; }
+
+  
+    #filters label, #filters span, #filters select { 
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif; 
+      font-size: 14px; 
+      font-weight: 600;
+      color: #111827;
     }
-    * { box-sizing: border-box; }
-    html, body { height: 100%; }
-    body {
-      margin: 0;
-      background: linear-gradient(180deg, #fafafa, #fff);
-      color: var(--text);
-      font: 14px/1.45 system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji", "Segoe UI Emoji";
-    }
-    header.topbar {
-      position: sticky; top: 0; z-index: 10;
-      backdrop-filter: blur(8px);
-      background: rgba(255,255,255,.75);
-      border-bottom: 1px solid var(--border);
-    }
-    .container { max-width: 1120px; margin: 0 auto; padding: 16px; }
-    .brand {
-      display: grid; place-items: center;
-      width: 36px; height: 36px; border-radius: 12px;
-      background: #000; color: #fff; font-weight: 700;
-    }
-    .row { display: flex; align-items: center; gap: 12px; }
-    .row.grow { justify-content: space-between; }
-    h1 { font-size: 20px; font-weight: 600; margin: 0; letter-spacing: -0.01em; }
-    input[type="search"], select, .btn {
-      font: inherit;
-    }
-    input[type="search"] {
-      width: 320px; max-width: 60vw;
-      border: 1px solid var(--border);
-      border-radius: 12px; padding: 8px 12px;
-      background: #fff;
-    }
-    .card {
-      background: var(--card); border: 1px solid var(--border);
-      border-radius: 16px; box-shadow: var(--shadow);
-    }
-    .card.pad { padding: 16px; }
-    .stats { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; }
-    .stat { padding: 16px; }
-    .stat .label { font-size: 11px; text-transform: uppercase; letter-spacing: .06em; color: var(--muted); }
-    .stat .val { font-size: 22px; font-weight: 600; margin-top: 4px; }
-    .filters { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; }
-    .filters .group { display: flex; align-items: center; gap: 8px; }
-    .pill {
-      display: inline-flex; align-items: center; justify-content: center;
-      padding: 0 8px; height: 24px; border-radius: 999px;
-      font-size: 12px; font-weight: 600;
-    }
-    table { width: 100%; border-collapse: collapse; }
-    thead th {
-      position: sticky; top: 64px;
-      background: #f6f7fb; color: #667085; font-size: 12px; font-weight: 600;
-      text-align: left; padding: 10px; border-bottom: 1px solid var(--border);
+
+  
+    #filters select {
+      padding: 6px 10px;
+      border: 1px solid #d1d5db;
+      border-radius: 8px;
+      background-color: #fff;
+      font-size: 14px;
+      font-family: inherit;
+      color: #111827;
       cursor: pointer;
     }
-    tbody td { padding: 12px 10px; border-top: 1px solid var(--border); vertical-align: middle; }
-    tbody tr:hover { background: #f9fafb; }
-    .right { text-align: right; }
-    .muted { color: var(--muted); }
-    .error { color: #b91c1c; margin-top: 8px; }
-    .hidden { display: none !important; }
+    #filters select:focus {
+      outline: none;
+      border-color: #2563eb;
+      box-shadow: 0 0 0 2px rgba(37,99,235,0.3);
+    }
+    #filters input[type="range"] {
+      -webkit-appearance: none;
+      width: 120px;
+      height: 6px;
+      border-radius: 3px;
+      background: #e5e7eb;
+      cursor: pointer;
+    }
+    #filters input[type="range"]::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      height: 14px;
+      width: 14px;
+      border-radius: 50%;
+      background: #2563eb;
+      cursor: pointer;
+    }
+    #filters input[type="range"]::-moz-range-thumb {
+      height: 14px;
+      width: 14px;
+      border-radius: 50%;
+      background: #2563eb;
+      cursor: pointer;
+      border: none;
+    }
+
+  
+    #filters {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 16px;
+      align-items: center;
+    }
+    #filters label {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+  
+    #filters {
+      background-color: #f9fafb;
+      border: 1px solid #e5e7eb;
+      border-radius: 12px;
+      padding: 16px;
+    }
+
+  
+    #filters input[type="range"] {
+      -webkit-appearance: none;
+      width: 120px;
+      height: 6px;
+      border-radius: 3px;
+      background: #e5e7eb;
+      cursor: pointer;
+    }
+    #filters input[type="range"]::-webkit-slider-runnable-track {
+      height: 6px;
+    }
+    #filters .range-container {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+    #filters .ticks {
+      display: flex;
+      justify-content: space-between;
+      font-size: 12px;
+      color: #6b7280;
+    }
+
+  
+    #filters .ticks {
+      display: grid;
+      grid-template-columns: repeat(7, 1fr);
+      width: 252px; /* matches two sliders side by side (120px each + gap ~12px) */
+      margin-top: 4px;
+      font-size: 12px;
+      color: #6b7280;
+    }
+    #filters .ticks span {
+      text-align: center;
+    }
+
+  
+    #filters {
+      display: flex;
+      flex-wrap: nowrap;
+      gap: 24px;
+      align-items: flex-end;
+    }
+    #filters label {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+    #filters label div {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+  
+    #filters input[type="range"]::-webkit-slider-thumb:active {
+      background: #1d4ed8;
+      box-shadow: 0 0 0 3px rgba(29,78,216,0.4);
+    }
+    #filters input[type="range"]::-moz-range-thumb:active {
+      background: #1d4ed8;
+      box-shadow: 0 0 0 3px rgba(29,78,216,0.4);
+      border: none;
+    }
+    #filters input[type="range"]:focus {
+      outline: none;
+    }
+
+  
+    input[type="search"] {
+      width: 320px;
+      max-width: 60vw;
+      border: 1px solid #d1d5db;
+      border-radius: 12px;
+      padding: 8px 12px;
+      background: #fff;
+      font: inherit;
+    }
+    @media (max-width: 720px) {
+      input[type="search"] { width: 100%; }
+    }
+    header .container {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+  
+    h1 {
+      font-size: 20px;
+      font-weight: 600;
+      margin: 0;
+      letter-spacing: -0.01em;
+    }
+
+  
+    #table td:nth-child(2),
+    #table td:nth-child(3) {
+      font-weight: 600;
+    }
+
+  
+    #table thead th:nth-child(3) { width: 36%; }  /* Name wider */
+    #table thead th:nth-child(5) { width: 14%; }  /* Underlying narrower */
+    #table thead th:nth-child(7) { width: 8%; }   /* Fee narrower */
+    #table thead th:nth-child(11) { width: 16%; } /* Link wider */
+
   </style>
 </head>
 <body>
-  <header class="topbar">
-    <div class="container row grow">
-      <div class="row">
-        <div class="brand">LE</div>
-        <h1>Leveraged Single-Stock ETF Catalog</h1>
-      </div>
-      <div class="row">
-        <input id="q" type="search" placeholder="Search ticker, name, issuer, underlying…" />
-      </div>
+  <header>
+    <div class="container">
+      
+    <div style="display:flex; align-items:center; gap:12px;">
+      <div style="background:#111827; color:#fff; font-weight:700; font-size:14px; width:32px; height:32px; display:flex; align-items:center; justify-content:center; border-radius:6px;">LE</div>
+      <h1>Leveraged Single-Stock ETF Catalog</h1>
+    </div>
+
+      <input id="q" type="search" placeholder="Search..." />
     </div>
   </header>
 
-  <main class="container" style="display:grid; gap:16px; padding-top:16px;">
-    <section class="card pad">
+  <main class="container">
+    <section class="card">
       <div id="error" class="error hidden"></div>
-      <div class="stats">
-        <div class="card stat">
-          <div class="label">Universe</div>
-          <div class="val">Single-Stock ETFs</div>
-        </div>
-        <div class="card stat">
-          <div class="label">Leverage</div>
-          <div class="val">-3x to +3x</div>
-        </div>
-        <div class="card stat">
-          <div class="label">Issuers</div>
-          <div class="val">Direxion • GraniteShares • T-Rex • Tradr • Leverage Shares • Defiance</div>
-        </div>
-      </div>
     </section>
 
-    <!-- Table -->
-    <section id="tableWrap" class="card hidden" style="overflow:hidden;">
+    <section id="filters" class="card hidden">
+      <label style="flex:1 1 100%; display:flex; flex-direction:column; gap:8px;">Leverage<div style="display:flex; align-items:center; gap:12px;"><input id="minSigned" type="range" min="-3" max="3" step="0.5" value="-3" /><input id="maxSigned" type="range" min="-3" max="3" step="0.5" value="3" /><span id="levDisplay" style="font-weight:600;"></span></div>
+        
+      </label><label>Direction
+        <select id="direction">
+          <option value="ALL">All</option>
+          <option value="Long">Long</option>
+          <option value="Inverse">Inverse</option>
+        </select>
+      </label><label>Issuer
+        <select id="issuer"></select>
+      </label><label>Underlying
+        <select id="underlying"></select>
+      </label></section>
+
+    <section id="tableWrap" class="card hidden">
       <table id="table">
         <thead>
           <tr>
+            <th>#</th>
             <th data-key="ticker">Ticker</th>
             <th data-key="name">Name</th>
             <th data-key="issuer">Issuer</th>
             <th data-key="underlying">Underlying</th>
-            <th class="right" data-key="assets">Assets (M)</th>
-            <th class="right" data-key="fee">Fee %</th>
-            <th class="right" data-key="lev">Lev (±)</th>
+            <th data-key="assets">Assets (M)</th>
+            <th data-key="fee">Fee %</th>
+            <th data-key="lev">Lev (±)</th>
             <th data-key="dir">Dir</th>
             <th>Link</th>
           </tr>
@@ -138,26 +284,79 @@
 
   <script>
     const SHEET_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vRy4-CVHi4Cy0pVDO72LuLi4XrpHGQqpPOf6esCKqBXd7Pilow15A-VLhP7dAqLgzggd6XHjMQ8pPmD/pub?output=csv";
+
     const tbody = document.querySelector("#table tbody");
+    const filters = document.getElementById("filters");
     const tableWrap = document.getElementById("tableWrap");
     const errorDiv = document.getElementById("error");
     const searchInput = document.getElementById("q");
+    const issuerSel = document.getElementById("issuer");
+    const underlyingSel = document.getElementById("underlying");
+    const dirSel = document.getElementById("direction");
+    const minRange = document.getElementById("minSigned");
+    const maxRange = document.getElementById("maxSigned");
 
     let ROWS = [];
     let sortKey = "assets";
     let sortDir = "desc";
 
+    function parseCSV(text) {
+      const rows = [];
+      let cur = [], cell = "", inQuotes = false;
+      for (let i=0;i<text.length;i++) {
+        const ch = text[i], next=text[i+1];
+        if (ch === '"') {
+          if (inQuotes && next === '"') { cell += '"'; i++; }
+          else inQuotes = !inQuotes;
+        } else if (ch === ',' && !inQuotes) {
+          cur.push(cell); cell="";
+        } else if ((ch === '\n' || ch === '\r') && !inQuotes) {
+          if (cell !== "" || cur.length) { cur.push(cell); rows.push(cur); cur=[]; cell=""; }
+        } else {
+          cell += ch;
+        }
+      }
+      if (cell.length || cur.length) { cur.push(cell); rows.push(cur); }
+      return rows;
+    }
+
     async function fetchSheetData() {
-      const resp = await fetch(SHEET_URL, { cache: "no-store" });
+      const resp = await fetch(SHEET_URL, { cache:"no-store" });
       if (!resp.ok) throw new Error("Failed to fetch Google Sheet: " + resp.status);
       const text = await resp.text();
-      const rows = text.split("\n").map(r => r.split(","));
-      const headers = rows.shift().map(h => h.trim());
+      const rows = parseCSV(text);
+      const headers = rows.shift().map(h => h.trim().toLowerCase());
       return rows.filter(r => r.length > 1).map(row => {
         let obj = {};
-        row.forEach((val, i) => obj[headers[i]] = val.trim());
+        row.forEach((val,i)=>obj[headers[i]]=(val||"").trim());
         return obj;
       });
+    }
+
+    function normalizeRow(r) {
+      return {
+        ticker: r["ticker"] || "",
+        name: r["name"] || "",
+        issuer: r["issuer"] || "",
+        underlying: r["underlying"] || "",
+        assets: Number((r["assets"]||"").replace(/[^0-9.]/g,"")) || 0,
+        fee: Number((r["fee"]||"").replace(/[^0-9.]/g,"")) || 0,
+        lev: Number((r["leverage"]||"").replace(/[^0-9.+-]/g,"")) || 0,
+        dir: r["direction"] || "",
+        url: r["url"] || ""
+      };
+    }
+
+    function formatNumber(val, decimals=0) {
+      if (isNaN(val)) return "";
+      return Number(val).toLocaleString(undefined,{minimumFractionDigits:decimals,maximumFractionDigits:decimals});
+    }
+
+    function populateFilters(rows) {
+      const issuers = [...new Set(rows.map(r=>r.issuer).filter(Boolean))].sort();
+      const underlyings = [...new Set(rows.map(r=>r.underlying).filter(Boolean))].sort();
+      issuerSel.innerHTML = '<option value="ALL">All</option>' + issuers.map(v=>`<option value="${v}">${v}</option>`).join("");
+      underlyingSel.innerHTML = '<option value="ALL">All</option>' + underlyings.map(v=>`<option value="${v}">${v}</option>`).join("");
     }
 
     function render() {
@@ -166,57 +365,86 @@
 
       if (qnorm) {
         data = data.filter(r =>
-          Object.values(r).some(v => String(v).toLowerCase().includes(qnorm))
+          (r.ticker+" "+r.name+" "+r.issuer+" "+r.underlying).toLowerCase().includes(qnorm)
         );
       }
 
-      data.sort((a, b) => {
-        if (!sortKey) return 0;
-        const av = a[sortKey] || "";
-        const bv = b[sortKey] || "";
-        if (!isNaN(av) && !isNaN(bv)) {
-          return (sortDir === "asc" ? av - bv : bv - av);
-        }
-        return (sortDir === "asc"
-          ? String(av).localeCompare(String(bv))
-          : String(bv).localeCompare(String(av)));
+      if (dirSel.value !== "ALL") data = data.filter(r => r.dir.toLowerCase() === dirSel.value.toLowerCase());
+      if (issuerSel.value !== "ALL") data = data.filter(r => r.issuer.toLowerCase() === issuerSel.value.toLowerCase());
+      if (underlyingSel.value !== "ALL") data = data.filter(r => r.underlying.toLowerCase() === underlyingSel.value.toLowerCase());
+
+      const minLev = parseFloat(minRange.value||-3);
+      const maxLev = parseFloat(maxRange.value||3);
+      data = data.filter(r => r.lev >= minLev && r.lev <= maxLev);
+
+      data.sort((a,b)=>{
+        const av=a[sortKey], bv=b[sortKey];
+        if (!isNaN(av)&&!isNaN(bv)) return sortDir==="asc"?av-bv:bv-av;
+        return sortDir==="asc"?String(av).localeCompare(String(bv)):String(bv).localeCompare(String(av));
       });
 
-      tbody.innerHTML = data.map(r => `
+      tbody.innerHTML = data.map((r,i)=>`
         <tr>
-          <td>${r["Ticker"] || ""}</td>
-          <td>${r["Name"] || ""}</td>
-          <td>${r["Issuer"] || ""}</td>
-          <td>${r["Underlying"] || ""}</td>
-          <td class="right">${r["Fund Assets (M USD)"] || ""}</td>
-          <td class="right">${r["Expense Ratio"] || ""}</td>
-          <td class="right">${r["Lev"] || ""}</td>
-          <td>${r["Dir"] || ""}</td>
-          <td>${r["URL"] ? `<a href="${r["URL"]}" target="_blank">Link</a>` : ""}</td>
+          <td>${i+1}</td>
+          <td>${r.ticker}</td>
+          <td>${r.name}</td>
+          <td>${r.issuer}</td>
+          <td>${r.underlying}</td>
+          <td>${r.assets ? `$${formatNumber(r.assets,0)}M` : ""}</td>
+          <td>${r.fee ? formatNumber(r.fee,2) + "%" : ""}</td>
+          <td>${r.lev===0?"0x":`<span class="${r.lev>0?"lev-pos":"lev-neg"}">${r.lev>0? "+"+r.lev:r.lev}x</span>`}</td>
+          <td>${r.dir}</td>
+          <td>${r.url?`<a href="${r.url}" target="_blank">Prospectus ↗</a>`:""}</td>
         </tr>`).join("");
     }
 
     document.querySelectorAll("th[data-key]").forEach(th =>
-      th.addEventListener("click", () => {
-        const key = th.dataset.key;
-        if (sortKey === key) sortDir = sortDir === "asc" ? "desc" : "asc";
-        else { sortKey = key; sortDir = "asc"; }
+      th.addEventListener("click",()=>{
+        const key=th.dataset.key;
+        if (!key||key==="#") return;
+        if (sortKey===key) sortDir=sortDir==="asc"?"desc":"asc";
+        else {sortKey=key; sortDir="asc";}
         render();
       })
     );
 
-    searchInput.addEventListener("input", render);
+    searchInput.addEventListener("input",render);
+    dirSel.addEventListener("change",render);
+    issuerSel.addEventListener("change",render);
+    underlyingSel.addEventListener("change",render);
+    minRange.addEventListener("input",render);
+    maxRange.addEventListener("input",render);
 
-    (async function bootstrap() {
-      try {
-        ROWS = await fetchSheetData();
+    (async function bootstrap(){
+      try{
+        const raw=await fetchSheetData();
+        ROWS=raw.map(normalizeRow);
+        populateFilters(ROWS);
+        filters.classList.remove("hidden");
         tableWrap.classList.remove("hidden");
         render();
-      } catch (err) {
-        errorDiv.textContent = err.message;
+      }catch(err){
+        errorDiv.textContent=err.message;
         errorDiv.classList.remove("hidden");
       }
     })();
-  </script>
+  
+    function updateLevDisplay() {
+      const minLev = parseFloat(minRange.value);
+      const maxLev = parseFloat(maxRange.value);
+      let html = '';
+      function fmtLev(val) {
+        if (val === 0) return '<span>0x</span>';
+        const cls = val > 0 ? 'lev-pos' : 'lev-neg';
+        return `<span class="${cls}">${val>0? '+'+val:val}x</span>`;
+      }
+      html = fmtLev(minLev) + ' to ' + fmtLev(maxLev);
+      document.getElementById('levDisplay').innerHTML = html;
+    }
+    minRange.addEventListener("input", updateLevDisplay);
+    maxRange.addEventListener("input", updateLevDisplay);
+    updateLevDisplay();
+
+</script>
 </body>
 </html>
