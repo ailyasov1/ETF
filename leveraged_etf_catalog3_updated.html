@@ -5,137 +5,67 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Leveraged Single-Stock ETF Catalog</title>
   <style>
-    :root {
-      --bg: #fafafa;
-      --card: #ffffff;
-      --border: #e6e6e6;
-      --text: #0f172a;
-      --muted: #6b7280;
-      --shadow: 0 1px 2px rgba(0,0,0,.04), 0 4px 12px rgba(0,0,0,.04);
-    }
-    * { box-sizing: border-box; }
-    body {
-      margin: 0;
-      background: linear-gradient(180deg, #fafafa, #fff);
-      color: var(--text);
-      font: 14px/1.45 system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial;
-    }
-    header.topbar {
-      position: sticky; top: 0; z-index: 10;
-      backdrop-filter: blur(8px);
-      background: rgba(255,255,255,.8);
-      border-bottom: 1px solid var(--border);
-    }
-    .container { max-width: 1120px; margin: 0 auto; padding: 16px; }
-    .row { display:flex; align-items:center; gap:12px; justify-content: space-between; }
-    .brand { width:36px; height:36px; border-radius:12px; display:grid; place-items:center; background:#000; color:#fff; font-weight:700; }
-    h1 { margin:0; font-size:20px; font-weight:600; }
-    input[type="search"], select { font: inherit; }
-    input[type="search"] {
-      width: 320px; max-width: 60vw;
-      border: 1px solid var(--border);
-      border-radius: 12px; padding: 8px 12px;
-      background: #fff;
-    }
-    .card { background: var(--card); border: 1px solid var(--border); border-radius: 16px; box-shadow: var(--shadow); }
-    .card.pad { padding: 16px; }
-    .filters { display:flex; flex-wrap:wrap; gap:12px; align-items:center; }
-    .filters .group { display:flex; align-items:center; gap:8px; }
-    .pill { display:inline-flex; align-items:center; justify-content:center; padding:0 8px; height:24px; border-radius:999px; font-size:12px; font-weight:600; background:#f3f4f6; }
-    #tableWrap { overflow:auto; }
-    table { width:100%; border-collapse:collapse; table-layout: fixed; }
-    thead th {
-      position: sticky; top: 64px;
-      background: #f6f7fb; color: #667085; font-size: 12px; font-weight: 600;
-      text-align: left; padding: 10px; border-bottom: 1px solid var(--border);
-      cursor: pointer;
-      white-space: nowrap;
-    }
-    tbody td { padding: 12px 10px; border-top: 1px solid var(--border); vertical-align: middle; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-    tbody tr:hover { background: #f9fafb; }
-    .right { text-align: right; }
-    .muted { color: var(--muted); }
-    .error { color: #b91c1c; margin-top: 8px; }
-    .hidden { display: none !important; }
-
-    /* Column widths */
-    #table thead th:nth-child(1) { width: 48px; }   /* # */
-    #table thead th:nth-child(2) { width: 90px; }   /* Ticker */
-    #table thead th:nth-child(3) { width: 26%; }    /* Name */
-    #table thead th:nth-child(4) { width: 14%; }    /* Issuer */
-    #table thead th:nth-child(5) { width: 14%; }    /* Underlying */
-    #table thead th:nth-child(6) { width: 9%; }     /* Assets */
-    #table thead th:nth-child(7) { width: 8%; }     /* Fee */
-    #table thead th:nth-child(8) { width: 8%; }     /* Lev */
-    #table thead th:nth-child(9) { width: 7%; }     /* Dir */
-    #table thead th:nth-child(10){ width: 8%; }     /* Type */
-    #table thead th:nth-child(11){ width: 6%; }     /* Link */
-
-    .lev-pos { color: #166534; background: #dcfce7; padding: 2px 6px; border-radius: 6px; }
-    .lev-neg { color: #9f1239; background: #ffe4e6; padding: 2px 6px; border-radius: 6px; }
+    body { font:14px system-ui; background:#fafafa; color:#111; margin:0; }
+    header { background:#fff; border-bottom:1px solid #ccc; padding:12px; position:sticky; top:0; }
+    input[type="search"] { padding:6px; width:250px; }
+    .container { max-width:1120px; margin:0 auto; padding:16px; }
+    .card { background:#fff; border:1px solid #ddd; border-radius:8px; padding:12px; margin:12px 0; }
+    table { width:100%; border-collapse:collapse; table-layout:fixed; }
+    th, td { padding:8px 10px; border-bottom:1px solid #eee; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+    thead th { background:#f6f7fb; cursor:pointer; font-size:12px; font-weight:600; position:sticky; top:48px; }
+    tbody tr:hover { background:#f9fafb; }
+    .right { text-align:right; }
+    .lev-pos { color:#166534; background:#dcfce7; padding:2px 6px; border-radius:6px; }
+    .lev-neg { color:#9f1239; background:#ffe4e6; padding:2px 6px; border-radius:6px; }
+    .hidden { display:none; }
   </style>
 </head>
 <body>
-  <header class="topbar">
-    <div class="container row">
-      <div class="row" style="gap:12px;">
-        <div class="brand">LE</div>
-        <h1>Leveraged Single-Stock ETF Catalog</h1>
-      </div>
-      <div class="row" style="gap:12px;">
-        <input id="q" type="search" placeholder="Search ticker, name, issuer, underlying…" />
-      </div>
+  <header>
+    <div class="container">
+      <h1>Leveraged Single-Stock ETF Catalog</h1>
+      <input id="q" type="search" placeholder="Search..." />
     </div>
   </header>
 
-  <main class="container" style="display:grid; gap:16px; padding-top:16px;">
-    <section class="card pad">
+  <main class="container">
+    <section class="card">
       <div id="error" class="error hidden"></div>
     </section>
 
-    <!-- Filters -->
-    <section id="filters" class="card pad hidden">
-      <div class="filters">
-        <div class="group">
-          <span class="muted" style="font-size:12px; font-weight:600;">Direction</span>
-          <select id="direction">
-            <option value="ALL">All</option>
-            <option value="Long">Long</option>
-            <option value="Inverse">Inverse</option>
-          </select>
-        </div>
-        <div class="group">
-          <span class="muted" style="font-size:12px; font-weight:600;">Issuer</span>
-          <select id="issuer"></select>
-        </div>
-        <div class="group">
-          <span class="muted" style="font-size:12px; font-weight:600;">Underlying</span>
-          <select id="underlying"></select>
-        </div>
-        <div class="group">
-          <span class="muted" style="font-size:12px; font-weight:600;">Leverage</span>
-          <span id="levLo" class="pill">-3x</span>
-          <input id="minSigned" type="range" min="-3" max="3" step="0.5" value="-3" />
-          <input id="maxSigned" type="range" min="-3" max="3" step="0.5" value="3" />
-          <span id="levHi" class="pill">+3x</span>
-        </div>
-      </div>
+    <section id="filters" class="card hidden">
+      <label>Direction
+        <select id="direction">
+          <option value="ALL">All</option>
+          <option value="Long">Long</option>
+          <option value="Inverse">Inverse</option>
+        </select>
+      </label>
+      <label>Issuer
+        <select id="issuer"></select>
+      </label>
+      <label>Underlying
+        <select id="underlying"></select>
+      </label>
+      <label>Leverage
+        <input id="minSigned" type="range" min="-3" max="3" step="0.5" value="-3" />
+        <input id="maxSigned" type="range" min="-3" max="3" step="0.5" value="3" />
+      </label>
     </section>
 
-    <!-- Table -->
     <section id="tableWrap" class="card hidden">
       <table id="table">
         <thead>
           <tr>
-            <th class="sortable" data-key="#">#</th>
-            <th class="sortable" data-key="ticker">Ticker</th>
-            <th class="sortable" data-key="name">Name</th>
-            <th class="sortable" data-key="issuer">Issuer</th>
-            <th class="sortable" data-key="underlying">Underlying</th>
-            <th class="sortable right" data-key="assets">Assets</th>
-            <th class="sortable right" data-key="fee">Fee %</th>
-            <th class="sortable right" data-key="lev">Lev (±)</th>
-            <th class="sortable" data-key="dir">Dir</th>
+            <th>#</th>
+            <th data-key="ticker">Ticker</th>
+            <th data-key="name">Name</th>
+            <th data-key="issuer">Issuer</th>
+            <th data-key="underlying">Underlying</th>
+            <th data-key="assets" class="right">Assets</th>
+            <th data-key="fee" class="right">Fee %</th>
+            <th data-key="lev" class="right">Lev (±)</th>
+            <th data-key="dir">Dir</th>
             <th>Link</th>
           </tr>
         </thead>
@@ -147,41 +77,33 @@
   <script>
     const SHEET_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vRy4-CVHi4Cy0pVDO72LuLi4XrpHGQqpPOf6esCKqBXd7Pilow15A-VLhP7dAqLgzggd6XHjMQ8pPmD/pub?output=csv";
 
-    // ---- Elements
-    const $ = (q) => document.querySelector(q);
-    const $$ = (q) => Array.from(document.querySelectorAll(q));
+    const tbody = document.querySelector("#table tbody");
+    const filters = document.getElementById("filters");
+    const tableWrap = document.getElementById("tableWrap");
+    const errorDiv = document.getElementById("error");
+    const searchInput = document.getElementById("q");
+    const issuerSel = document.getElementById("issuer");
+    const underlyingSel = document.getElementById("underlying");
+    const dirSel = document.getElementById("direction");
+    const minRange = document.getElementById("minSigned");
+    const maxRange = document.getElementById("maxSigned");
 
-    const tbody = $("#table tbody");
-    const tableWrap = $("#tableWrap");
-    const filters = $("#filters");
-    const errorDiv = $("#error");
-    const searchInput = $("#q");
-    const issuerSel = $("#issuer");
-    const underlyingSel = $("#underlying");
-    const dirSel = $("#direction");
-    const minRange = $("#minSigned");
-    const maxRange = $("#maxSigned");
-    const levLo = $("#levLo");
-    const levHi = $("#levHi");
-
-    // ---- State
     let ROWS = [];
     let sortKey = "assets";
     let sortDir = "desc";
 
-    // Robust CSV parser (handles quotes/commas/newlines)
     function parseCSV(text) {
       const rows = [];
       let cur = [], cell = "", inQuotes = false;
-      for (let i = 0; i < text.length; i++) {
-        const ch = text[i], next = text[i+1];
+      for (let i=0;i<text.length;i++) {
+        const ch = text[i], next=text[i+1];
         if (ch === '"') {
           if (inQuotes && next === '"') { cell += '"'; i++; }
           else inQuotes = !inQuotes;
         } else if (ch === ',' && !inQuotes) {
-          cur.push(cell); cell = "";
+          cur.push(cell); cell="";
         } else if ((ch === '\n' || ch === '\r') && !inQuotes) {
-          if (cell !== "" || cur.length) { cur.push(cell); rows.push(cur); cur = []; cell = ""; }
+          if (cell !== "" || cur.length) { cur.push(cell); rows.push(cur); cur=[]; cell=""; }
         } else {
           cell += ch;
         }
@@ -191,51 +113,42 @@
     }
 
     async function fetchSheetData() {
-      const resp = await fetch(SHEET_URL, { cache: "no-store" });
+      const resp = await fetch(SHEET_URL, { cache:"no-store" });
       if (!resp.ok) throw new Error("Failed to fetch Google Sheet: " + resp.status);
       const text = await resp.text();
       const rows = parseCSV(text);
-      const headers = rows.shift().map(h => h.trim());
+      const headers = rows.shift().map(h => h.trim().toLowerCase());
       return rows.filter(r => r.length > 1).map(row => {
-        const obj = {};
-        row.forEach((val, i) => obj[headers[i]] = (val || "").trim());
+        let obj = {};
+        row.forEach((val,i)=>obj[headers[i]]=(val||"").trim());
         return obj;
       });
     }
 
-    // Map your exact headers to UI fields
     function normalizeRow(r) {
       return {
-        ticker: r["Ticker"] || "",
-        name: r["Name"] || "",
-        issuer: r["Issuer"] || "",
-        underlying: r["Underlying"] || "",
-        assets: Number((r["Assets"] || "").toString().replace(/[^0-9.]/g, "")) || 0,
-        fee: Number((r["Fee"] || "").toString().replace(/[^0-9.]/g, "")) || 0,
-        lev: Number((r["Leverage"] || "").toString().replace(/[^0-9.+-]/g, "")) || 0,
-        dir: r["Direction"] || "",
-                url: r["URL"] || ""
+        ticker: r["ticker"] || "",
+        name: r["name"] || "",
+        issuer: r["issuer"] || "",
+        underlying: r["underlying"] || "",
+        assets: Number((r["assets"]||"").replace(/[^0-9.]/g,"")) || 0,
+        fee: Number((r["fee"]||"").replace(/[^0-9.]/g,"")) || 0,
+        lev: Number((r["leverage"]||"").replace(/[^0-9.+-]/g,"")) || 0,
+        dir: r["direction"] || "",
+        url: r["url"] || ""
       };
     }
 
     function formatNumber(val, decimals=0) {
       if (isNaN(val)) return "";
-      return Number(val).toLocaleString(undefined, { minimumFractionDigits: decimals, maximumFractionDigits: decimals });
+      return Number(val).toLocaleString(undefined,{minimumFractionDigits:decimals,maximumFractionDigits:decimals});
     }
 
     function populateFilters(rows) {
-      const issuers = Array.from(new Set(rows.map(r => r.issuer).filter(Boolean))).sort();
-      const underlyings = Array.from(new Set(rows.map(r => r.underlying).filter(Boolean))).sort();
-      issuerSel.innerHTML = '<option value="ALL">All</option>' + issuers.map(v => `<option value="\${v}">\${v}</option>`).join("");
-      underlyingSel.innerHTML = '<option value="ALL">All</option>' + underlyings.map(v => `<option value="\${v}">\${v}</option>`).join("");
-    }
-
-    function onSort(th) {
-      const key = th.dataset.key;
-      if (!key || key === "#") return;
-      if (sortKey === key) sortDir = (sortDir === "asc" ? "desc" : "asc");
-      else { sortKey = key; sortDir = "asc"; }
-      render();
+      const issuers = [...new Set(rows.map(r=>r.issuer).filter(Boolean))].sort();
+      const underlyings = [...new Set(rows.map(r=>r.underlying).filter(Boolean))].sort();
+      issuerSel.innerHTML = '<option value="ALL">All</option>' + issuers.map(v=>`<option value="${v}">${v}</option>`).join("");
+      underlyingSel.innerHTML = '<option value="ALL">All</option>' + underlyings.map(v=>`<option value="${v}">${v}</option>`).join("");
     }
 
     function render() {
@@ -243,65 +156,67 @@
       let data = [...ROWS];
 
       if (qnorm) {
-        data = data.filter(r => {
-          return (r.ticker + " " + r.name + " " + r.issuer + " " + r.underlying)
-            .toLowerCase().includes(qnorm);
-        });
+        data = data.filter(r =>
+          (r.ticker+" "+r.name+" "+r.issuer+" "+r.underlying).toLowerCase().includes(qnorm)
+        );
       }
 
-      // Apply filters
       if (dirSel.value !== "ALL") data = data.filter(r => r.dir.toLowerCase() === dirSel.value.toLowerCase());
-      if (issuerSel.value !== "ALL") data = data.filter(r => r.issuer === issuerSel.value);
-      if (underlyingSel.value !== "ALL") data = data.filter(r => r.underlying === underlyingSel.value);
-      const minLev = Number(minRange.value || -3);
-      const maxLev = Number(maxRange.value || 3);
-      levLo.textContent = (minLev >= 0 ? "+" : "") + minLev + "x";
-      levHi.textContent = (maxLev >= 0 ? "+" : "") + maxLev + "x";
+      if (issuerSel.value !== "ALL") data = data.filter(r => r.issuer.toLowerCase() === issuerSel.value.toLowerCase());
+      if (underlyingSel.value !== "ALL") data = data.filter(r => r.underlying.toLowerCase() === underlyingSel.value.toLowerCase());
+
+      const minLev = parseFloat(minRange.value||-3);
+      const maxLev = parseFloat(maxRange.value||3);
       data = data.filter(r => r.lev >= minLev && r.lev <= maxLev);
 
-      // Sort
-      data.sort((a, b) => {
-        const av = a[sortKey], bv = b[sortKey];
-        if (typeof av === "number" && typeof bv === "number") return sortDir === "asc" ? av - bv : bv - av;
-        return sortDir === "asc" ? String(av).localeCompare(String(bv)) : String(bv).localeCompare(String(av));
+      data.sort((a,b)=>{
+        const av=a[sortKey], bv=b[sortKey];
+        if (!isNaN(av)&&!isNaN(bv)) return sortDir==="asc"?av-bv:bv-av;
+        return sortDir==="asc"?String(av).localeCompare(String(bv)):String(bv).localeCompare(String(av));
       });
 
-      // Render
-      tbody.innerHTML = data.map((r, i) => `
+      tbody.innerHTML = data.map((r,i)=>`
         <tr>
-          <td>${i + 1}</td>
+          <td>${i+1}</td>
           <td>${r.ticker}</td>
           <td>${r.name}</td>
           <td>${r.issuer}</td>
           <td>${r.underlying}</td>
-          <td class="right">${formatNumber(r.assets, 0)}</td>
-          <td class="right">${formatNumber(r.fee, 2)}</td>
-          <td class="right">${r.lev === 0 ? "0" : `<span class="${r.lev > 0 ? "lev-pos" : "lev-neg"}">${r.lev}</span>`}</td>
+          <td class="right">${formatNumber(r.assets,0)}</td>
+          <td class="right">${formatNumber(r.fee,2)}</td>
+          <td class="right">${r.lev===0?"0":`<span class="${r.lev>0?"lev-pos":"lev-neg"}">${r.lev}</span>`}</td>
           <td>${r.dir}</td>
-          <td>${r.url ? `<a href="${r.url}" target="_blank">Link</a>` : ""}</td>
+          <td>${r.url?`<a href="${r.url}" target="_blank">Link</a>`:""}</td>
         </tr>`).join("");
     }
 
-    // ---- Events
-    searchInput.addEventListener("input", render);
-    dirSel.addEventListener("change", render);
-    issuerSel.addEventListener("change", render);
-    underlyingSel.addEventListener("change", render);
-    minRange.addEventListener("input", render);
-    maxRange.addEventListener("input", render);
-    $$(".sortable").forEach(th => th.addEventListener("click", () => onSort(th)));
+    document.querySelectorAll("th[data-key]").forEach(th =>
+      th.addEventListener("click",()=>{
+        const key=th.dataset.key;
+        if (!key||key==="#") return;
+        if (sortKey===key) sortDir=sortDir==="asc"?"desc":"asc";
+        else {sortKey=key; sortDir="asc";}
+        render();
+      })
+    );
 
-    // ---- Bootstrap
-    (async function bootstrap() {
-      try {
-        const raw = await fetchSheetData();
-        ROWS = raw.map(normalizeRow);
+    searchInput.addEventListener("input",render);
+    dirSel.addEventListener("change",render);
+    issuerSel.addEventListener("change",render);
+    underlyingSel.addEventListener("change",render);
+    minRange.addEventListener("input",render);
+    maxRange.addEventListener("input",render);
+
+    (async function bootstrap(){
+      try{
+        const raw=await fetchSheetData();
+        ROWS=raw.map(normalizeRow);
         populateFilters(ROWS);
         filters.classList.remove("hidden");
         tableWrap.classList.remove("hidden");
         render();
-      } catch (err) {
-        errorDiv.textContent = (err && err.message) ? err.message : String(err);
+      }catch(err){
+        errorDiv.textContent=err.message;
         errorDiv.classList.remove("hidden");
       }
     })();
