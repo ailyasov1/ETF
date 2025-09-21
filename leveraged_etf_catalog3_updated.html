@@ -19,112 +19,59 @@
       --blue: #2563eb;
       --shadow: 0 1px 2px rgba(0,0,0,.04), 0 4px 12px rgba(0,0,0,.04);
     }
-    * { box-sizing: border-box; }
-    body {
-      margin: 0;
-      background: linear-gradient(180deg, #fafafa, #fff);
-      color: var(--text);
-      font: 14px/1.45 system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial;
-    }
-    header.topbar {
-      position: sticky; top: 0; z-index: 10;
-      backdrop-filter: blur(8px);
-      background: rgba(255,255,255,.75);
-      border-bottom: 1px solid var(--border);
-    }
-    .container { max-width: 1120px; margin: 0 auto; padding: 16px; }
-    .brand {
-      display: grid; place-items: center;
-      width: 36px; height: 36px; border-radius: 12px;
-      background: #000; color: #fff; font-weight: 700;
-    }
-    .row { display: flex; align-items: center; gap: 12px; }
-    .row.grow { justify-content: space-between; }
-    h1 { font-size: 20px; font-weight: 600; margin: 0; }
-    input[type="search"], select { font: inherit; }
-    input[type="search"] {
-      width: 320px; max-width: 60vw;
-      border: 1px solid var(--border);
-      border-radius: 12px; padding: 8px 12px;
-      background: #fff;
-    }
-    .card {
-      background: var(--card); border: 1px solid var(--border);
-      border-radius: 16px; box-shadow: var(--shadow);
-    }
-    .card.pad { padding: 16px; }
-    .filters { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; }
-    .filters .group { display: flex; align-items: center; gap: 8px; }
-    .pill { display: inline-flex; align-items: center; justify-content: center;
-      padding: 0 8px; height: 24px; border-radius: 999px;
-      font-size: 12px; font-weight: 600;
-    }
-    table { width: 100%; border-collapse: collapse; }
-    thead th {
-      position: sticky; top: 64px;
-      background: #f6f7fb; color: #667085; font-size: 12px; font-weight: 600;
-      text-align: left; padding: 10px; border-bottom: 1px solid var(--border);
-      cursor: pointer;
-    }
-    tbody td { padding: 12px 10px; border-top: 1px solid var(--border); }
-    tbody tr:hover { background: #f9fafb; }
-    .right { text-align: right; }
-    .muted { color: var(--muted); }
-    .error { color: #b91c1c; margin-top: 8px; }
-    .hidden { display: none !important; }
-  
-    .lev-pos { color: #166534; background: #dcfce7; padding: 2px 6px; border-radius: 6px; }
-    .lev-neg { color: #9f1239; background: #ffe4e6; padding: 2px 6px; border-radius: 6px; }
-
+    body { margin:0; font:14px/1.45 system-ui; background:#fafafa; color:var(--text); }
+    header.topbar { position:sticky; top:0; background:#fff; border-bottom:1px solid var(--border); z-index:10; }
+    .container { max-width:1120px; margin:0 auto; padding:16px; }
+    h1 { font-size:20px; margin:0; }
+    input[type="search"] { width:320px; padding:8px; border:1px solid var(--border); border-radius:8px; }
+    .card { background:#fff; border:1px solid var(--border); border-radius:12px; padding:16px; margin-bottom:16px; }
+    .filters { display:flex; flex-wrap:wrap; gap:12px; }
+    table { width:100%; border-collapse:collapse; }
+    th, td { padding:8px 10px; border-bottom:1px solid var(--border); }
+    thead th { cursor:pointer; background:#f6f7fb; font-size:12px; font-weight:600; }
+    tbody tr:hover { background:#f9fafb; }
+    .right { text-align:right; }
+    .lev-pos { color:#166534; background:#dcfce7; padding:2px 6px; border-radius:6px; }
+    .lev-neg { color:#9f1239; background:#ffe4e6; padding:2px 6px; border-radius:6px; }
+    .hidden { display:none; }
   </style>
 </head>
 <body>
   <header class="topbar">
-    <div class="container row grow">
-      <div class="row">
-        <div class="brand">LE</div>
-        <h1>Leveraged Single-Stock ETF Catalog</h1>
-      </div>
-      <div class="row">
-        <input id="q" type="search" placeholder="Search ticker, name, issuer, underlying…" />
-      </div>
+    <div class="container">
+      <h1>Leveraged Single-Stock ETF Catalog</h1>
+      <input id="q" type="search" placeholder="Search..." />
     </div>
   </header>
 
-  <main class="container" style="display:grid; gap:16px; padding-top:16px;">
-    <section class="card pad">
+  <main class="container">
+    <section class="card">
       <div id="error" class="error hidden"></div>
     </section>
 
-    <!-- Filters -->
-    <section id="filters" class="card pad hidden">
+    <section id="filters" class="card hidden">
       <div class="filters">
-        <div class="group">
-          <span class="muted">Direction</span>
+        <label>Direction
           <select id="direction">
             <option value="ALL">All</option>
             <option value="Long">Long</option>
             <option value="Inverse">Inverse</option>
           </select>
-        </div>
-        <div class="group">
-          <span class="muted">Issuer</span>
+        </label>
+        <label>Issuer
           <select id="issuer"></select>
-        </div>
-        <div class="group">
-          <span class="muted">Underlying</span>
+        </label>
+        <label>Underlying
           <select id="underlying"></select>
-        </div>
-        <div class="group">
-          <span class="muted">Leverage</span>
+        </label>
+        <label>Leverage
           <input id="minSigned" type="range" min="-3" max="3" step="0.5" value="-3" />
           <input id="maxSigned" type="range" min="-3" max="3" step="0.5" value="3" />
-        </div>
+        </label>
       </div>
     </section>
 
-    <!-- Table -->
-    <section id="tableWrap" class="card hidden" style="overflow:hidden;">
+    <section id="tableWrap" class="card hidden">
       <table id="table">
         <thead>
           <tr>
@@ -150,8 +97,8 @@
     const SHEET_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vRy4-CVHi4Cy0pVDO72LuLi4XrpHGQqpPOf6esCKqBXd7Pilow15A-VLhP7dAqLgzggd6XHjMQ8pPmD/pub?output=csv";
 
     const tbody = document.querySelector("#table tbody");
-    const tableWrap = document.getElementById("tableWrap");
     const filters = document.getElementById("filters");
+    const tableWrap = document.getElementById("tableWrap");
     const errorDiv = document.getElementById("error");
     const searchInput = document.getElementById("q");
     const issuerSel = document.getElementById("issuer");
@@ -160,23 +107,15 @@
     const minRange = document.getElementById("minSigned");
     const maxRange = document.getElementById("maxSigned");
 
-    let RAW = [];
+    let ROWS = [];
     let sortKey = "assets";
-
-
-    function formatNumber(val, decimals=0) {
-      if (isNaN(val)) return "";
-      return Number(val).toLocaleString(undefined, { minimumFractionDigits: decimals, maximumFractionDigits: decimals });
-    }
-
     let sortDir = "desc";
 
     async function fetchSheetData() {
-      const resp = await fetch(SHEET_URL, { cache: "no-store" });
-      if (!resp.ok) throw new Error("Failed to fetch Google Sheet: " + resp.status);
+      const resp = await fetch(SHEET_URL);
       const text = await resp.text();
       const rows = text.split("\n").map(r => r.split(","));
-      const headers = rows.shift().map(h => h.trim().toLowerCase());
+      const headers = rows.shift().map(h => h.trim());
       return rows.filter(r => r.length > 1).map(row => {
         let obj = {};
         row.forEach((val, i) => obj[headers[i]] = val.trim());
@@ -184,21 +123,24 @@
       });
     }
 
-    function normalizeSheetData(data) {
-      return data.map(r => {
-        return {
-          ticker: r["ticker"] || "",
-          name: r["name"] || "",
-          issuer: r["issuer"] || "",
-          underlying: r["underlying"] || "",
-          assets: parseFloat((r["fund assets (m usd)"] || "0").replace(/[^0-9.]/g, "")) || 0,
-          fee: parseFloat((r["expense ratio"] || "0").replace(/[^0-9.]/g, "")) || 0,
-          lev: parseFloat((r["lev"] || "0").replace(/[^0-9.+-]/g, "")) || 0,
-          dir: r["dir"] || "",
-          type: r["fund type"] || r["segment"] || "",
-          url: r["url"] || ""
-        };
-      });
+    function normalizeSheetRow(r) {
+      return {
+        ticker: r["Ticker"] || "",
+        name: r["Name"] || "",
+        issuer: r["Issuer"] || "",
+        underlying: r["Underlying"] || "",
+        assets: parseFloat((r["Fund Assets (M USD)"] || "").replace(/[^0-9.]/g, "")) || 0,
+        fee: parseFloat((r["Expense Ratio"] || "").replace(/[^0-9.]/g, "")) || 0,
+        lev: parseFloat(r["Lev"]) || 0,
+        dir: r["Dir"] || "",
+        type: r["Fund Type"] || r["segment"] || "",
+        url: r["URL"] || ""
+      };
+    }
+
+    function formatNumber(val, decimals=0) {
+      if (isNaN(val)) return "";
+      return Number(val).toLocaleString(undefined, { minimumFractionDigits: decimals, maximumFractionDigits: decimals });
     }
 
     function populateFilters(rows) {
@@ -210,7 +152,7 @@
 
     function render() {
       const qnorm = searchInput.value.trim().toLowerCase();
-      let data = [...RAW];
+      let data = [...ROWS];
 
       if (qnorm) {
         data = data.filter(r =>
@@ -218,7 +160,6 @@
         );
       }
 
-      // Apply filters
       if (dirSel.value !== "ALL") data = data.filter(r => r.dir.toLowerCase() === dirSel.value.toLowerCase());
       if (issuerSel.value !== "ALL") data = data.filter(r => r.issuer === issuerSel.value);
       if (underlyingSel.value !== "ALL") data = data.filter(r => r.underlying === underlyingSel.value);
@@ -226,14 +167,12 @@
       const maxLev = parseFloat(maxRange.value || 3);
       data = data.filter(r => r.lev >= minLev && r.lev <= maxLev);
 
-      // Sort
       data.sort((a, b) => {
         const av = a[sortKey], bv = b[sortKey];
         if (!isNaN(av) && !isNaN(bv)) return sortDir === "asc" ? av - bv : bv - av;
         return sortDir === "asc" ? String(av).localeCompare(String(bv)) : String(bv).localeCompare(String(av));
       });
 
-      // Render
       tbody.innerHTML = data.map((r, i) => `
         <tr>
           <td>${i + 1}</td>
@@ -243,7 +182,7 @@
           <td>${r.underlying}</td>
           <td class="right">${formatNumber(r.assets, 0)}</td>
           <td class="right">${formatNumber(r.fee, 2)}</td>
-          <td class="right">${r.lev ? `<span class="${r.lev > 0 ? "lev-pos" : (r.lev < 0 ? "lev-neg" : "")}">${r.lev}</span>` : ""}</td>
+          <td class="right">${r.lev ? `<span class="${r.lev > 0 ? "lev-pos" : "lev-neg"}">${r.lev}</span>` : ""}</td>
           <td>${r.dir}</td>
           <td>${r.type}</td>
           <td>${r.url ? `<a href="${r.url}" target="_blank">Link</a>` : ""}</td>
@@ -268,9 +207,9 @@
 
     (async function bootstrap() {
       try {
-        const sheetData = await fetchSheetData();
-        RAW = normalizeSheetData(sheetData);
-        populateFilters(RAW);
+        const raw = await fetchSheetData();
+        ROWS = raw.map(normalizeSheetRow);
+        populateFilters(ROWS);
         filters.classList.remove("hidden");
         tableWrap.classList.remove("hidden");
         render();
