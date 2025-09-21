@@ -228,13 +228,25 @@
 
   
     
-    #ticker-content {
-      display: inline-block;
-      padding-left: 100%;
-      animation: scroll 30s linear infinite;
-    }
-    @keyframes scroll {
-      from { transform: translateX(0); }
+    
+#ticker-content {
+  overflow: hidden;
+}
+#ticker-content .scroll-inner {
+  display: inline-block;
+  padding-left: 100%;
+  white-space: nowrap;
+}
+@keyframes scroll {
+  from { transform: translateX(0); }
+  to   { transform: translateX(-100%); }
+}
+#ticker-content .scroll-inner span {
+  margin-right: 32px;
+  font-size: 14px;
+  color: #111827;
+}
+
       to   { transform: translateX(-100%); }
     }
     
@@ -486,6 +498,7 @@
     updateLevDisplay();
 
 
+
 async function updateTickerBar() {
   const rows = document.querySelectorAll("#table tbody tr");
   const tickers = [];
@@ -500,18 +513,31 @@ async function updateTickerBar() {
     const data = await res.json();
     const quotes = data.quoteResponse.result;
 
-    let html = "";
+    let html = "<div class='scroll-inner'>";
     quotes.forEach(q => {
       const price = q.regularMarketPrice?.toFixed(2) ?? "—";
       const change = q.regularMarketChangePercent?.toFixed(2) ?? "0.00";
       const cls = change >= 0 ? "pos" : "neg";
       html += `<span><b>${q.symbol}</b> $${price} <span class="${cls}">${change}%</span></span>`;
     });
+    html += "</div>";
 
-    document.getElementById("ticker-content").innerHTML = html;
+    const tickerContent = document.getElementById("ticker-content");
+    tickerContent.innerHTML = html;
+
+    // Reset animation by triggering reflow
+    const inner = tickerContent.querySelector(".scroll-inner");
+    if (inner) {
+      const width = inner.scrollWidth;
+      const duration = Math.max(20, width / 50); // dynamic duration
+      inner.style.animation = "none";
+      inner.offsetHeight; // trigger reflow
+      inner.style.animation = `scroll ${duration}s linear infinite`;
+    }
   } catch (e) {
     console.error("Ticker fetch failed", e);
   }
+}
 }
 
 updateTickerBar();
