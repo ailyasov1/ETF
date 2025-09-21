@@ -18,6 +18,10 @@
     .lev-pos { color:#166534; background:#dcfce7; padding:2px 6px; border-radius:6px; }
     .lev-neg { color:#9f1239; background:#ffe4e6; padding:2px 6px; border-radius:6px; }
     .hidden { display:none; }
+  
+    #table thead th:nth-child(3) { width: 32%; }  /* Name */
+    #table thead th:nth-child(4) { width: 18%; }  /* Issuer */
+
   </style>
 </head>
 <body>
@@ -62,9 +66,9 @@
             <th data-key="name">Name</th>
             <th data-key="issuer">Issuer</th>
             <th data-key="underlying">Underlying</th>
-            <th data-key="assets" class="right">Assets (M)</th>
-            <th data-key="fee" class="right">Fee %</th>
-            <th data-key="lev" class="right">Lev (±)</th>
+            <th data-key="assets">Assets (M)</th>
+            <th data-key="fee">Fee %</th>
+            <th data-key="lev">Lev (±)</th>
             <th data-key="dir">Dir</th>
             <th>Link</th>
           </tr>
@@ -182,9 +186,9 @@
           <td>${r.name}</td>
           <td>${r.issuer}</td>
           <td>${r.underlying}</td>
-          <td class="right">${r.assets ? `$${formatNumber(r.assets,0)}M` : ""}</td>
-          <td class="right">${r.fee ? formatNumber(r.fee,2) + "%" : ""}</td>
-          <td class="right">${r.lev===0?"0x":`<span class="${r.lev>0?"lev-pos":"lev-neg"}">${r.lev>0? "+"+r.lev:r.lev}x</span>`}</td>
+          <td>${r.assets ? `$${formatNumber(r.assets,0)}M` : ""}</td>
+          <td>${r.fee ? formatNumber(r.fee,2) + "%" : ""}</td>
+          <td>${r.lev===0?"0x":`<span class="${r.lev>0?"lev-pos":"lev-neg"}">${r.lev>0? "+"+r.lev:r.lev}x</span>`}</td>
           <td>${r.dir}</td>
           <td>${r.url?`<a href="${r.url}" target="_blank">Link</a>`:""}</td>
         </tr>`).join("");
