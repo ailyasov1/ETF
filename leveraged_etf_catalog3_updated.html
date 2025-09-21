@@ -136,7 +136,6 @@
             <th class="sortable right" data-key="fee">Fee %</th>
             <th class="sortable right" data-key="lev">Lev (±)</th>
             <th class="sortable" data-key="dir">Dir</th>
-            <th class="sortable" data-key="type">Type</th>
             <th>Link</th>
           </tr>
         </thead>
@@ -215,8 +214,7 @@
         fee: Number((r["Fee"] || "").toString().replace(/[^0-9.]/g, "")) || 0,
         lev: Number((r["Leverage"] || "").toString().replace(/[^0-9.+-]/g, "")) || 0,
         dir: r["Direction"] || "",
-        type: "", // not in sheet
-        url: r["URL"] || ""
+                url: r["URL"] || ""
       };
     }
 
@@ -280,7 +278,6 @@
           <td class="right">${formatNumber(r.fee, 2)}</td>
           <td class="right">${r.lev === 0 ? "0" : `<span class="${r.lev > 0 ? "lev-pos" : "lev-neg"}">${r.lev}</span>`}</td>
           <td>${r.dir}</td>
-          <td>${r.type}</td>
           <td>${r.url ? `<a href="${r.url}" target="_blank">Link</a>` : ""}</td>
         </tr>`).join("");
     }
