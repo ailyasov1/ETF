@@ -1,1686 +1,444 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Single Stock Leveraged ETFs Tracker</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            margin: 0;
-            padding: 0;
-            background-color: #f4f4f4;
-        }
-        header {
-            background-color: #1a1a1a;
-            color: white;
-            padding: 20px;
-            text-align: center;
-        }
-        #search {
-            margin: 20px auto;
-            width: 80%;
-            max-width: 600px;
-        }
-        #search input {
-            width: 100%;
-            padding: 10px;
-            font-size: 16px;
-        }
-        table {
-            width: 90%;
-            margin: 20px auto;
-            border-collapse: collapse;
-            background-color: white;
-            box-shadow: 0 0 10px rgba(0,0,0,0.1);
-        }
-        th, td {
-            padding: 12px;
-            text-align: left;
-            border-bottom: 1px solid #ddd;
-        }
-        th {
-            background-color: #f2f2f2;
-            cursor: pointer;
-        }
-        th:hover {
-            background-color: #e0e0e0;
-        }
-        tr:hover {
-            background-color: #f5f5f5;
-        }
-        a {
-            color: #007bff;
-            text-decoration: none;
-        }
-        a:hover {
-            text-decoration: underline;
-        }
-        .numeric {
-            text-align: right;
-        }
-    </style>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Leveraged Single-Stock ETF Catalog</title>
+  <style>
+    body { font:14px system-ui; background:#fafafa; color:#111; margin:0; }
+    header { background:#fff; border-bottom:1px solid #ccc; padding:12px; position:sticky; top:0; }
+    input[type="search"] { padding:6px; width:250px; }
+    .container { max-width:1120px; margin:0 auto; padding:16px; }
+    .card { background:#fff; border:1px solid #ddd; border-radius:8px; padding:12px; margin:12px 0; }
+    table { width:100%; border-collapse:collapse; table-layout:fixed; }
+    th, td { padding:8px 10px; border-bottom:1px solid #eee; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+    thead th { background:#f6f7fb; cursor:pointer; font-size:12px; font-weight:600; position:sticky; top:48px; }
+    tbody tr:hover { background:#f9fafb; }
+    .right { text-align:right; }
+    .lev-pos { color:#166534; background:#dcfce7; padding:2px 6px; border-radius:6px; }
+    .lev-neg { color:#9f1239; background:#ffe4e6; padding:2px 6px; border-radius:6px; }
+    .hidden { display:none; }
+  
+    #table thead th:nth-child(3) { width: 32%; }  /* Name */
+    #table thead th:nth-child(4) { width: 18%; }  /* Issuer */
+
+  
+    #table thead th:nth-child(10) { width: 12%; }  /* Dir */
+    #table thead th:nth-child(11) { width: 14%; }  /* Link */
+
+  
+    #table td a { text-decoration: none; color: #2563eb; }
+
+  
+    #table thead th:nth-child(2) { width: 12%; }  /* Ticker */
+    #table thead th:nth-child(5) { width: 18%; }  /* Underlying */
+    #table thead th:nth-child(6) { width: 12%; }  /* Assets */
+    #table thead th:nth-child(7) { width: 10%; }  /* Fee */
+    #table thead th:nth-child(8) { width: 10%; }  /* Leverage */
+    #table thead th:nth-child(9) { width: 10%; }  /* Dir */
+
+  
+    body { font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif; font-size:14px; }
+    thead th { padding: 12px 16px; }
+    tbody td { padding: 12px 16px; line-height: 1.5; }
+    tbody tr:hover { background-color: #f3f4f6; }
+    .card { border-radius: 12px; box-shadow: 0 2px 6px rgba(0,0,0,0.08); }
+
+  
+    thead th { text-align: left !important; }
+
+  
+    #filters label, #filters span, #filters select { 
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif; 
+      font-size: 14px; 
+      font-weight: 600;
+      color: #111827;
+    }
+
+  
+    #filters select {
+      padding: 6px 10px;
+      border: 1px solid #d1d5db;
+      border-radius: 8px;
+      background-color: #fff;
+      font-size: 14px;
+      font-family: inherit;
+      color: #111827;
+      cursor: pointer;
+    }
+    #filters select:focus {
+      outline: none;
+      border-color: #2563eb;
+      box-shadow: 0 0 0 2px rgba(37,99,235,0.3);
+    }
+    #filters input[type="range"] {
+      -webkit-appearance: none;
+      width: 120px;
+      height: 6px;
+      border-radius: 3px;
+      background: #e5e7eb;
+      cursor: pointer;
+    }
+    #filters input[type="range"]::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      height: 14px;
+      width: 14px;
+      border-radius: 50%;
+      background: #2563eb;
+      cursor: pointer;
+    }
+    #filters input[type="range"]::-moz-range-thumb {
+      height: 14px;
+      width: 14px;
+      border-radius: 50%;
+      background: #2563eb;
+      cursor: pointer;
+      border: none;
+    }
+
+  
+    #filters {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 16px;
+      align-items: center;
+    }
+    #filters label {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+  
+    #filters {
+      background-color: #f9fafb;
+      border: 1px solid #e5e7eb;
+      border-radius: 12px;
+      padding: 16px;
+    }
+
+  
+    #filters input[type="range"] {
+      -webkit-appearance: none;
+      width: 120px;
+      height: 6px;
+      border-radius: 3px;
+      background: #e5e7eb;
+      cursor: pointer;
+    }
+    #filters input[type="range"]::-webkit-slider-runnable-track {
+      height: 6px;
+    }
+    #filters .range-container {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+    #filters .ticks {
+      display: flex;
+      justify-content: space-between;
+      font-size: 12px;
+      color: #6b7280;
+    }
+
+  
+    #filters .ticks {
+      display: grid;
+      grid-template-columns: repeat(7, 1fr);
+      width: 252px; /* matches two sliders side by side (120px each + gap ~12px) */
+      margin-top: 4px;
+      font-size: 12px;
+      color: #6b7280;
+    }
+    #filters .ticks span {
+      text-align: center;
+    }
+
+  
+    #filters {
+      display: flex;
+      flex-wrap: nowrap;
+      gap: 24px;
+      align-items: flex-end;
+    }
+    #filters label {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+    #filters label div {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+  
+    #filters input[type="range"]::-webkit-slider-thumb:active {
+      background: #1d4ed8;
+      box-shadow: 0 0 0 3px rgba(29,78,216,0.4);
+    }
+    #filters input[type="range"]::-moz-range-thumb:active {
+      background: #1d4ed8;
+      box-shadow: 0 0 0 3px rgba(29,78,216,0.4);
+      border: none;
+    }
+    #filters input[type="range"]:focus {
+      outline: none;
+    }
+
+  
+    input[type="search"] {
+      width: 320px;
+      max-width: 60vw;
+      border: 1px solid #d1d5db;
+      border-radius: 12px;
+      padding: 8px 12px;
+      background: #fff;
+      font: inherit;
+    }
+    @media (max-width: 720px) {
+      input[type="search"] { width: 100%; }
+    }
+    header .container {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+  
+    h1 {
+      font-size: 20px;
+      font-weight: 600;
+      margin: 0;
+      letter-spacing: -0.01em;
+    }
+
+  
+    #table td:nth-child(2),
+    #table td:nth-child(3) {
+      font-weight: 600;
+    }
+
+  </style>
 </head>
 <body>
-    <header>
-        <h1>Single Stock Leveraged ETFs Tracker</h1>
-        <p>Similar to CoinMarketCap, but for single stock leveraged ETFs. Data as of attached file (September 2025).</p>
-    </header>
-
-    <div id="search">
-        <input type="text" id="searchInput" placeholder="Search by Name or Ticker..." onkeyup="searchTable()">
+  <header>
+    <div class="container">
+      
+    <div style="display:flex; align-items:center; gap:12px;">
+      <div style="background:#111827; color:#fff; font-weight:700; font-size:14px; width:32px; height:32px; display:flex; align-items:center; justify-content:center; border-radius:6px;">LE</div>
+      <h1>Leveraged Single-Stock ETF Catalog</h1>
     </div>
 
-    <table id="etfTable">
+      <input id="q" type="search" placeholder="Search..." />
+    </div>
+  </header>
+
+  <main class="container">
+    <section class="card">
+      <div id="error" class="error hidden"></div>
+    </section>
+
+    <section id="filters" class="card hidden">
+      <label style="flex:1 1 100%; display:flex; flex-direction:column; gap:8px;">Leverage<div style="display:flex; align-items:center; gap:12px;"><input id="minSigned" type="range" min="-3" max="3" step="0.5" value="-3" /><input id="maxSigned" type="range" min="-3" max="3" step="0.5" value="3" /><span id="levDisplay" style="font-weight:600;"></span></div>
+        
+      </label><label>Direction
+        <select id="direction">
+          <option value="ALL">All</option>
+          <option value="Long">Long</option>
+          <option value="Inverse">Inverse</option>
+        </select>
+      </label><label>Issuer
+        <select id="issuer"></select>
+      </label><label>Underlying
+        <select id="underlying"></select>
+      </label></section>
+
+    <section id="tableWrap" class="card hidden">
+      <table id="table">
         <thead>
-            <tr>
-                <th onclick="sortTable(0)">Rank</th>
-                <th onclick="sortTable(1)">Name</th>
-                <th onclick="sortTable(2)">Ticker</th>
-                <th class="numeric" onclick="sortTable(3)">Fund Assets (M USD)</th>
-                <th class="numeric" onclick="sortTable(4)">Expense Ratio</th>
-                <th onclick="sortTable(5)">Fund Type</th>
-                <th>URL</th>
-            </tr>
+          <tr>
+            <th>#</th>
+            <th data-key="ticker">Ticker</th>
+            <th data-key="name">Name</th>
+            <th data-key="issuer">Issuer</th>
+            <th data-key="underlying">Underlying</th>
+            <th data-key="assets">Assets (M)</th>
+            <th data-key="fee">Fee %</th>
+            <th data-key="lev">Lev (±)</th>
+            <th data-key="dir">Dir</th>
+            <th>Link</th>
+          </tr>
         </thead>
-        <tbody>
-            <tr>
-                <td>1</td>
-                <td>Direxion Daily TSLA Bull 2X Shares</td>
-                <td>TSLL US</td>
-                <td class="numeric">5992.64</td>
-                <td class="numeric">0.95%</td>
-                <td>ETF</td>
-                <td><a href="https://www.direxion.com/product/daily-tsla-bull-and-bear-leveraged-single-stock-etfs" target="_blank">Link</a></td>
-            </tr>
-            <tr>
-                <td>2</td>
-                <td>GraniteShares 2x Long NVDA Daily ETF</td>
-                <td>NVDL US</td>
-                <td class="numeric">4204.02</td>
-                <td class="numeric">1.06%</td>
-                <td>ETF</td>
-                <td><a href="https://graniteshares.com/institutional/us/en-us/etfs/nvdl/" target="_blank">Link</a></td>
-            </tr>
-            <tr>
-                <td>3</td>
-                <td>T-Rex 2X Long MSTR Daily Target ETF</td>
-                <td>MSTU US</td>
-                <td class="numeric">992.66</td>
-                <td class="numeric">1.05%</td>
-                <td>ETF</td>
-                <td><a href="https://www.rexshares.com/mstu/" target="_blank">Link</a></td>
-            </tr>
-            <tr>
-                <td>4</td>
-                <td>GraniteShares 2x Long COIN Daily ETF</td>
-                <td>CONL US</td>
-                <td class="numeric">752.77</td>
-                <td class="numeric">1.10%</td>
-                <td>ETF</td>
-                <td><a href="https://graniteshares.com/institutional/us/en-us/etfs/conl/" target="_blank">Link</a></td>
-            </tr>
-            <tr>
-                <td>5</td>
-                <td>Defiance Daily Target 2X Long MSTR ETF</td>
-                <td>MSTX US</td>
-                <td class="numeric">745.45</td>
-                <td class="numeric">1.31%</td>
-                <td>ETF</td>
-                <td><a href="https://www.defianceetfs.com/mstx/" target="_blank">Link</a></td>
-            </tr>
-            <tr>
-                <td>6</td>
-                <td>GraniteShares 2x Long PLTR Daily ETF</td>
-                <td>PTIR US</td>
-                <td class="numeric">662.81</td>
-                <td class="numeric">1.15%</td>
-                <td>ETF</td>
-                <td><a href="https://graniteshares.com/institutional/us/en-us/etfs/ptir/" target="_blank">Link</a></td>
-            </tr>
-            <tr>
-                <td>7</td>
-                <td>Direxion Daily NVDA Bull 2X Shares</td>
-                <td>NVDU US</td>
-                <td class="numeric">651.6</td>
-                <td class="numeric">0.97%</td>
-                <td>ETF</td>
-                <td><a href="https://www.direxion.com/product/daily-nvda-bull-and-bear-leveraged-single-stock-etfs" target="_blank">Link</a></td>
-            </tr>
-            <tr>
-                <td>8</td>
-                <td>T-Rex 2X Long NVIDIA Daily Target ETF</td>
-                <td>NVDX US</td>
-                <td class="numeric">621.78</td>
-                <td class="numeric">1.05%</td>
-                <td>ETF</td>
-                <td><a href="https://www.rexshares.com/nvdx/" target="_blank">Link</a></td>
-            </tr>
-            <tr>
-                <td>9</td>
-                <td>Graniteshares 2x Long AMD Daily ETF</td>
-                <td>AMDL US</td>
-                <td class="numeric">509.57</td>
-                <td class="numeric">1.15%</td>
-                <td>ETF</td>
-                <td><a href="https://graniteshares.com/institutional/us/en-us/etfs/amdl/" target="_blank">Link</a></td>
-            </tr>
-            <tr>
-                <td>10</td>
-                <td>Direxion Daily PLTR Bull 2X Shares</td>
-                <td>PLTU US</td>
-                <td class="numeric">497.6</td>
-                <td class="numeric">1.50%</td>
-                <td>ETF</td>
-                <td><a href="https://www.direxion.com/product/daily-pltr-bull-and-bear-leveraged-single-stock-etfs" target="_blank">Link</a></td>
-            </tr>
-            <tr>
-                <td>11</td>
-                <td>Direxion Daily GOOGL Bull 2X Shares</td>
-                <td>GGLL US</td>
-                <td class="numeric">441.15</td>
-                <td class="numeric">0.99%</td>
-                <td>ETF</td>
-                <td><a href="https://www.direxion.com/product/daily-googl-bull-and-bear-leveraged-single-stock-etfs" target="_blank">Link</a></td>
-            </tr>
-            <tr>
-                <td>12</td>
-                <td>T-Rex 2X Long Tesla Daily Target ETF</td>
-                <td>TSLT US</td>
-                <td class="numeric">353.87</td>
-                <td class="numeric">1.05%</td>
-                <td>ETF</td>
-                <td><a href="https://www.rexshares.com/tslt/" target="_blank">Link</a></td>
-            </tr>
-            <tr>
-                <td>13</td>
-                <td>Tradr 2X Short TSLA Daily ETF</td>
-                <td>TSLQ US</td>
-                <td class="numeric">312.99</td>
-                <td class="numeric">1.17%</td>
-                <td>ETF</td>
-                <td><a href="https://www.tradretfs.com/tslq-2x-short-tsla-daily-etf" target="_blank">Link</a></td>
-            </tr>
-            <tr>
-                <td>14</td>
-                <td>Direxion Daily AMZN Bull 2X Shares</td>
-                <td>AMZU US</td>
-                <td class="numeric">302.03</td>
-                <td class="numeric">0.99%</td>
-                <td>ETF</td>
-                <td><a href="https://www.direxion.com/product/daily-amzn-bull-and-bear-leveraged-single-stock-etfs" target="_blank">Link</a></td>
-            </tr>
-            <tr>
-                <td>15</td>
-                <td>GraniteShares 2x Long TSLA Daily ETF</td>
-                <td>TSLR US</td>
-                <td class="numeric">249.79</td>
-                <td class="numeric">0.95%</td>
-                <td>ETF</td>
-                <td><a href="https://graniteshares.com/institutional/us/en-us/etfs/tslr/" target="_blank">Link</a></td>
-            </tr>
-            <tr>
-                <td>16</td>
-                <td>Defiance Daily Target 2X Long SMCI ETF</td>
-                <td>SMCX US</td>
-                <td class="numeric">244.81</td>
-                <td class="numeric">1.43%</td>
-                <td>ETF</td>
-                <td><a href="https://www.defianceetfs.com/smcx/" target="_blank">Link</a></td>
-            </tr>
-            <tr>
-                <td>17</td>
-                <td>T-REX 2X Long HOOD Daily Target ETF</td>
-                <td>ROBN US</td>
-                <td class="numeric">223.37</td>
-                <td class="numeric">1.05%</td>
-                <td>ETF</td>
-                <td><a href="https://www.rexshares.com/robn/" target="_blank">Link</a></td>
-            </tr>
-            <tr>
-                <td>18</td>
-                <td>Leverage Shares 2X Long UNH Daily ETF</td>
-                <td>UNHG US</td>
-                <td class="numeric">208.43</td>
-                <td class="numeric">0.75%</td>
-                <td>ETF</td>
-                <td><a href="https://leverageshares.com/us/etfs/leverage-shares-2x-long-unh-daily-etf/" target="_blank">Link</a></td>
-            </tr>
-            <tr>
-                <td>19</td>
-                <td>Direxion Daily AAPL Bull 2X Shares</td>
-                <td>AAPU US</td>
-                <td class="numeric">207.6</td>
-                <td class="numeric">0.97%</td>
-                <td>ETF</td>
-                <td><a href="https://www.direxion.com/product/daily-aapl-bull-and-bear-leveraged-single-stock-etfs" target="_blank">Link</a></td>
-            </tr>
-            <tr>
-                <td>20</td>
-                <td>Defiance Daily Target 2X Long HIMS ETF</td>
-                <td>HIMZ US</td>
-                <td class="numeric">203.33</td>
-                <td class="numeric">1.29%</td>
-                <td>ETF</td>
-                <td><a href="https://www.defianceetfs.com/himz/" target="_blank">Link</a></td>
-            </tr>
-            <tr>
-                <td>21</td>
-                <td>GraniteShares 2x Short NVDA Daily ETF</td>
-                <td>NVD US</td>
-                <td class="numeric">179.63</td>
-                <td class="numeric">1.50%</td>
-                <td>ETF</td>
-                <td><a href="https://graniteshares.com/institutional/us/en-us/etfs/nvd/" target="_blank">Link</a></td>
-            </tr>
-            <tr>
-                <td>22</td>
-                <td>GraniteShares 2x Long META Daily ETF</td>
-                <td>FBL US</td>
-                <td class="numeric">149.12</td>
-                <td class="numeric">1.15%</td>
-                <td>ETF</td>
-                <td><a href="https://graniteshares.com/institutional/us/en-us/etfs/fbl/" target="_blank">Link</a></td>
-            </tr>
-            <tr>
-                <td>23</td>
-                <td>Tradr 2X Long CRWV Daily ETF</td>
-                <td>CWVX US</td>
-                <td class="numeric">147.43</td>
-                <td class="numeric">1.30%</td>
-                <td>ETF</td>
-                <td><a href="https://www.tradretfs.com/cwvx" target="_blank">Link</a></td>
-            </tr>
-            <tr>
-                <td>24</td>
-                <td>Direxion Daily MSFT Bull 2X Shares</td>
-                <td>MSFU US</td>
-                <td class="numeric">144.9</td>
-                <td class="numeric">0.99%</td>
-                <td>ETF</td>
-                <td><a href="https://www.direxion.com/product/daily-msft-bull-and-bear-leveraged-single-stock-etfs" target="_blank">Link</a></td>
-            </tr>
-            <tr>
-                <td>25</td>
-                <td>Direxion Daily Meta Bull 2x Shares</td>
-                <td>METU US</td>
-                <td class="numeric">137.03</td>
-                <td class="numeric">1.06%</td>
-                <td>ETF</td>
-                <td><a href="https://www.direxion.com/product/daily-meta-bull-and-bear-leveraged-single-stock-etfs" target="_blank">Link</a></td>
-            </tr>
-            <tr>
-                <td>26</td>
-                <td>GraniteShares 2x Long BABA Daily ETF</td>
-                <td>BABX US</td>
-                <td class="numeric">137.03</td>
-                <td class="numeric">1.15%</td>
-                <td>ETF</td>
-                <td><a href="https://graniteshares.com/institutional/us/en-us/etfs/babx/" target="_blank">Link</a></td>
-            </tr>
-            <tr>
-                <td>27</td>
-                <td>T-Rex 2X Inverse MSTR Daily Target ETF</td>
-                <td>MSTZ US</td>
-                <td class="numeric">120.44</td>
-                <td class="numeric">1.05%</td>
-                <td>ETF</td>
-                <td><a href="https://www.rexshares.com/mstz/" target="_blank">Link</a></td>
-            </tr>
-            <tr>
-                <td>28</td>
-                <td>Direxion Daily AVGO Bull 2X Shares</td>
-                <td>AVL US</td>
-                <td class="numeric">106.44</td>
-                <td class="numeric">1.04%</td>
-                <td>ETF</td>
-                <td><a href="https://www.direxion.com/product/daily-avgo-bull-2x-shares" target="_blank">Link</a></td>
-            </tr>
-            <tr>
-                <td>29</td>
-                <td>Direxion Daily TSM Bull 2X Shares</td>
-                <td>TSMX US</td>
-                <td class="numeric">103.09</td>
-                <td class="numeric">1.05%</td>
-                <td>ETF</td>
-                <td><a href="https://www.direxion.com/product/daily-tsm-bull-2x-shares" target="_blank">Link</a></td>
-            </tr>
-            <tr>
-                <td>30</td>
-                <td>Defiance Daily Target 2X Long LLY ETF</td>
-                <td>LLYX US</td>
-                <td class="numeric">92.63</td>
-                <td class="numeric">1.32%</td>
-                <td>ETF</td>
-                <td><a href="https://www.defianceetfs.com/llyx/" target="_blank">Link</a></td>
-            </tr>
-            <tr>
-                <td>31</td>
-                <td>Defiance Daily Target 2X Long IONQ ETF</td>
-                <td>IONX US</td>
-                <td class="numeric">92.27</td>
-                <td class="numeric">1.29%</td>
-                <td>ETF</td>
-                <td><a href="https://www.defianceetfs.com/ionx/" target="_blank">Link</a></td>
-            </tr>
-            <tr>
-                <td>32</td>
-                <td>Defiance Daily Target 2X Long AVGO ETF</td>
-                <td>AVGX US</td>
-                <td class="numeric">88.99</td>
-                <td class="numeric">1.30%</td>
-                <td>ETF</td>
-                <td><a href="https://www.defianceetfs.com/avgx/" target="_blank">Link</a></td>
-            </tr>
-            <tr>
-                <td>33</td>
-                <td>Tradr 2X Long APP Daily ETF</td>
-                <td>APPX US</td>
-                <td class="numeric">85.91</td>
-                <td class="numeric">1.30%</td>
-                <td>ETF</td>
-                <td><a href="https://www.tradretfs.com/appx?hsLang=en" target="_blank">Link</a></td>
-            </tr>
-            <tr>
-                <td>34</td>
-                <td>Direxion Daily NFLX Bull 2X Shares</td>
-                <td>NFXL US</td>
-                <td class="numeric">83.06</td>
-                <td class="numeric">1.06%</td>
-                <td>ETF</td>
-                <td><a href="https://www.direxion.com/product/daily-nflx-bull-2x-shares" target="_blank">Link</a></td>
-            </tr>
-            <tr>
-                <td>35</td>
-                <td>GraniteShares 2x Long MRVL Daily ETF</td>
-                <td>MVLL US</td>
-                <td class="numeric">80.18</td>
-                <td class="numeric">1.50%</td>
-                <td>ETF</td>
-                <td><a href="https://graniteshares.com/institutional/us/en-us/etfs/mvll/" target="_blank">Link</a></td>
-            </tr>
-            <tr>
-                <td>36</td>
-                <td>Direxion Daily BRKB Bull 2X Shares</td>
-                <td>BRKU US</td>
-                <td class="numeric">78.67</td>
-                <td class="numeric">0.97%</td>
-                <td>ETF</td>
-                <td><a href="https://www.direxion.com/product/daily-brkb-bull-2x-shares" target="_blank">Link</a></td>
-            </tr>
-            <tr>
-                <td>37</td>
-                <td>T-Rex 2X Inverse Tesla Daily Target ETF</td>
-                <td>TSLZ US</td>
-                <td class="numeric">74.38</td>
-                <td class="numeric">1.05%</td>
-                <td>ETF</td>
-                <td><a href="https://www.rexshares.com/tslz/" target="_blank">Link</a></td>
-            </tr>
-            <tr>
-                <td>38</td>
-                <td>GraniteShares 2x Short TSLA Daily ETF</td>
-                <td>TSDD US</td>
-                <td class="numeric">73.67</td>
-                <td class="numeric">0.95%</td>
-                <td>ETF</td>
-                <td><a href="https://graniteshares.com/institutional/us/en-us/etfs/tsdd/" target="_blank">Link</a></td>
-            </tr>
-            <tr>
-                <td>39</td>
-                <td>Direxion Daily TSLA Bear 1X Shares</td>
-                <td>TSLS US</td>
-                <td class="numeric">73.34</td>
-                <td class="numeric">0.94%</td>
-                <td>ETF</td>
-                <td><a href="https://www.direxion.com/product/daily-tsla-bear-1x-shares" target="_blank">Link</a></td>
-            </tr>
-            <tr>
-                <td>40</td>
-                <td>Tradr 2X Long SMR Daily ETF</td>
-                <td>SMU US</td>
-                <td class="numeric">68.61</td>
-                <td class="numeric">1.30%</td>
-                <td>ETF</td>
-                <td><a href="https://www.tradretfs.com/smu?hsLang=en" target="_blank">Link</a></td>
-            </tr>
-            <tr>
-                <td>41</td>
-                <td>Defiance Daily Target 2X Long SOFI ETF</td>
-                <td>SOFX US</td>
-                <td class="numeric">68.14</td>
-                <td class="numeric">1.29%</td>
-                <td>ETF</td>
-                <td><a href="https://www.defianceetfs.com/sofx/" target="_blank">Link</a></td>
-            </tr>
-            <tr>
-                <td>42</td>
-                <td>GraniteShares 2x Long AMZN Daily ETF</td>
-                <td>AMZZ US</td>
-                <td class="numeric">64.35</td>
-                <td class="numeric">1.15%</td>
-                <td>ETF</td>
-                <td><a href="https://graniteshares.com/institutional/us/en-us/etfs/amzz/" target="_blank">Link</a></td>
-            </tr>
-            <tr>
-                <td>43</td>
-                <td>Defiance Daily Target 2X Long RKLB ETF</td>
-                <td>RKLX US</td>
-                <td class="numeric">63.59</td>
-                <td class="numeric">1.29%</td>
-                <td>ETF</td>
-                <td><a href="https://www.defianceetfs.com/rklx/" target="_blank">Link</a></td>
-            </tr>
-            <tr>
-                <td>44</td>
-                <td>Defiance Daily Target 2X Long OKLO ETF</td>
-                <td>OKLL US</td>
-                <td class="numeric">62.57</td>
-                <td class="numeric">1.31%</td>
-                <td>ETF</td>
-                <td><a href="https://www.defianceetfs.com/okll/" target="_blank">Link</a></td>
-            </tr>
-            <tr>
-                <td>45</td>
-                <td>Tradr 2X Long QBTS Daily ETF</td>
-                <td>QBTX US</td>
-                <td class="numeric">62.46</td>
-                <td class="numeric">1.30%</td>
-                <td>ETF</td>
-                <td><a href="https://www.tradretfs.com/qbtx?hsLang=en" target="_blank">Link</a></td>
-            </tr>
-            <tr>
-                <td>46</td>
-                <td>Graniteshares 2x Long Smci Daily Etf</td>
-                <td>SMCL US</td>
-                <td class="numeric">60.06</td>
-                <td class="numeric">1.50%</td>
-                <td>ETF</td>
-                <td><a href="https://graniteshares.com/institutional/us/en-us/etfs/smcl/" target="_blank">Link</a></td>
-            </tr>
-            <tr>
-                <td>47</td>
-                <td>Leverage Shares 2X Long HOOD Daily ETF</td>
-                <td>HOOG US</td>
-                <td class="numeric">57.27</td>
-                <td class="numeric">0.75%</td>
-                <td>ETF</td>
-                <td><a href="https://leverageshares.com/us/etfs/leverage-shares-2x-long-hood-daily-etf/" target="_blank">Link</a></td>
-            </tr>
-            <tr>
-                <td>48</td>
-                <td>GraniteShares 2x Long MARA Daily ETF</td>
-                <td>MRAL US</td>
-                <td class="numeric">56.18</td>
-                <td class="numeric">1.30%</td>
-                <td>ETF</td>
-                <td><a href="https://graniteshares.com/institutional/us/en-us/etfs/mral/" target="_blank">Link</a></td>
-            </tr>
-            <tr>
-                <td>49</td>
-                <td>Defiance Daily Target 2X Short PLTR ETF</td>
-                <td>PLTZ US</td>
-                <td class="numeric">56.11</td>
-                <td class="numeric">1.29%</td>
-                <td>ETF</td>
-                <td><a href="https://www.defianceetfs.com/pltz/" target="_blank">Link</a></td>
-            </tr>
-            <tr>
-                <td>50</td>
-                <td>Tradr 1.5X Short NVDA Daily ETF</td>
-                <td>NVDS US</td>
-                <td class="numeric">53.51</td>
-                <td class="numeric">1.15%</td>
-                <td>ETF</td>
-                <td><a href="https://www.tradretfs.com/nvds-1.5x-short-nvda-daily-etf?hsLang=en" target="_blank">Link</a></td>
-            </tr>
-            <tr>
-                <td>51</td>
-                <td>Direxion Daily PLTR Bear 1X Shares</td>
-                <td>PLTD US</td>
-                <td class="numeric">53</td>
-                <td class="numeric">1.50%</td>
-                <td>ETF</td>
-                <td><a href="https://www.direxion.com/product/daily-pltr-bear-1x-shares" target="_blank">Link</a></td>
-            </tr>
-            <tr>
-                <td>52</td>
-                <td>GraniteShares 2x Long INTC Daily ETF</td>
-                <td>INTW US</td>
-                <td class="numeric">52.42</td>
-                <td class="numeric">1.50%</td>
-                <td>ETF</td>
-                <td><a href="https://graniteshares.com/institutional/us/en-us/etfs/intw/" target="_blank">Link</a></td>
-            </tr>
-            <tr>
-                <td>53</td>
-                <td>T-Rex 2X Inverse NVIDIA Daily Target ETF</td>
-                <td>NVDQ US</td>
-                <td class="numeric">50.93</td>
-                <td class="numeric">1.05%</td>
-                <td>ETF</td>
-                <td><a href="https://www.rexshares.com/nvdq/" target="_blank">Link</a></td>
-            </tr>
-            <tr>
-                <td>54</td>
-                <td>Tradr 2X Long TEM Daily ETF</td>
-                <td>TEMT US</td>
-                <td class="numeric">49.4</td>
-                <td class="numeric">1.30%</td>
-                <td>ETF</td>
-                <td><a href="https://www.tradretfs.com/temt?hsLang=en" target="_blank">Link</a></td>
-            </tr>
-            <tr>
-                <td>55</td>
-                <td>Proshares Ultra CRCL</td>
-                <td>CRCA US</td>
-                <td class="numeric">46.86</td>
-                <td class="numeric">0.95%</td>
-                <td>ETF</td>
-                <td><a href="https://www.proshares.com/our-etfs/leveraged-and-inverse/crca" target="_blank">Link</a></td>
-            </tr>
-            <tr>
-                <td>56</td>
-                <td>Defiance Daily Target 2X Long ORCL ETF</td>
-                <td>ORCX US</td>
-                <td class="numeric">46.2</td>
-                <td class="numeric">1.36%</td>
-                <td>ETF</td>
-                <td><a href="https://www.defianceetfs.com/orcx/" target="_blank">Link</a></td>
-            </tr>
-            <tr>
-                <td>57</td>
-                <td>Direxion Daily MU Bull 2X Shares</td>
-                <td>MUU US</td>
-                <td class="numeric">44.08</td>
-                <td class="numeric">1.06%</td>
-                <td>ETF</td>
-                <td><a href="https://www.direxion.com/product/daily-mu-bull-2x-shares" target="_blank">Link</a></td>
-            </tr>
-            <tr>
-                <td>58</td>
-                <td>GraniteShares 2x Long RDDT Daily ETF</td>
-                <td>RDTL US</td>
-                <td class="numeric">42.04</td>
-                <td class="numeric">1.30%</td>
-                <td>ETF</td>
-                <td><a href="https://graniteshares.com/institutional/us/en-us/etfs/rdtl/" target="_blank">Link</a></td>
-            </tr>
-            <tr>
-                <td>59</td>
-                <td>Defiance Daily Target 2X Long RGTI ETF</td>
-                <td>RGTX US</td>
-                <td class="numeric">41.24</td>
-                <td class="numeric">1.29%</td>
-                <td>ETF</td>
-                <td><a href="https://www.defianceetfs.com/rgtx/" target="_blank">Link</a></td>
-            </tr>
-            <tr>
-                <td>60</td>
-                <td>GraniteShares 2x Long CRWD Daily ETF</td>
-                <td>CRWL US</td>
-                <td class="numeric">36.74</td>
-                <td class="numeric">1.50%</td>
-                <td>ETF</td>
-                <td><a href="https://graniteshares.com/institutional/us/en-us/etfs/crwl/" target="_blank">Link</a></td>
-            </tr>
-            <tr>
-                <td>61</td>
-                <td>Defiance Daily Target 2X Short MSTR ETF</td>
-                <td>SMST US</td>
-                <td class="numeric">36.36</td>
-                <td class="numeric">1.31%</td>
-                <td>ETF</td>
-                <td><a href="https://www.defianceetfs.com/smst/" target="_blank">Link</a></td>
-            </tr>
-            <tr>
-                <td>62</td>
-                <td>GraniteShares 2x Long AAPL Daily ETF</td>
-                <td>AAPB US</td>
-                <td class="numeric">34.15</td>
-                <td class="numeric">1.15%</td>
-                <td>ETF</td>
-                <td><a href="https://graniteshares.com/institutional/us/en-us/etfs/aapb/" target="_blank">Link</a></td>
-            </tr>
-            <tr>
-                <td>63</td>
-                <td>Direxion Daily NVDA Bear 1X Shares</td>
-                <td>NVDD US</td>
-                <td class="numeric">33.87</td>
-                <td class="numeric">1.02%</td>
-                <td>ETF</td>
-                <td><a href="https://www.direxion.com/product/daily-nvda-bear-1x-shares" target="_blank">Link</a></td>
-            </tr>
-            <tr>
-                <td>64</td>
-                <td>Tradr 2X Long ASTS Daily ETF</td>
-                <td>ASTX US</td>
-                <td class="numeric">32.71</td>
-                <td class="numeric">1.30%</td>
-                <td>ETF</td>
-                <td><a href="https://www.tradretfs.com/astx?hsLang=en" target="_blank">Link</a></td>
-            </tr>
-            <tr>
-                <td>65</td>
-                <td>Direxion Daily AMD Bull 2X Shares</td>
-                <td>AMUU US</td>
-                <td class="numeric">32.25</td>
-                <td class="numeric">0.97%</td>
-                <td>ETF</td>
-                <td><a href="https://www.direxion.com/product/daily-amd-bull-2x-shares" target="_blank">Link</a></td>
-            </tr>
-            <tr>
-                <td>66</td>
-                <td>T-Rex 2X Long NFLX Daily Target ETF</td>
-                <td>NFLU US</td>
-                <td class="numeric">32.17</td>
-                <td class="numeric">1.05%</td>
-                <td>ETF</td>
-                <td><a href="https://www.rexshares.com/nflu/" target="_blank">Link</a></td>
-            </tr>
-            <tr>
-                <td>67</td>
-                <td>Tradr 2X Long UPST Daily ETF</td>
-                <td>UPSX US</td>
-                <td class="numeric">30.71</td>
-                <td class="numeric">1.30%</td>
-                <td>ETF</td>
-                <td><a href="https://www.tradretfs.com/upsx?hsLang=en" target="_blank">Link</a></td>
-            </tr>
-            <tr>
-                <td>68</td>
-                <td>Leverage Shares 2x Long TSLA Daily ETF</td>
-                <td>TSLG US</td>
-                <td class="numeric">29.18</td>
-                <td class="numeric">0.75%</td>
-                <td>ETF</td>
-                <td><a href="https://leverageshares.com/us/etfs/leverage-shares-2x-tesla-long-etf/" target="_blank">Link</a></td>
-            </tr>
-            <tr>
-                <td>69</td>
-                <td>Defiance Daily Target 2X Long RIOT ETF</td>
-                <td>RIOX US</td>
-                <td class="numeric">27.02</td>
-                <td class="numeric">0.95%</td>
-                <td>ETF</td>
-                <td><a href="https://www.defianceetfs.com/riox/" target="_blank">Link</a></td>
-            </tr>
-            <tr>
-                <td>70</td>
-                <td>Direxion Daily LLY Bull 2X Shares</td>
-                <td>ELIL US</td>
-                <td class="numeric">26.18</td>
-                <td class="numeric">0.95%</td>
-                <td>ETF</td>
-                <td><a href="https://www.direxion.com/product/daily-lly-bull-2x-shares" target="_blank">Link</a></td>
-            </tr>
-            <tr>
-                <td>71</td>
-                <td>T-REX 2X Long GME Daily Target ETF</td>
-                <td>GMEU US</td>
-                <td class="numeric">24.86</td>
-                <td class="numeric">1.50%</td>
-                <td>ETF</td>
-                <td><a href="https://www.rexshares.com/gmeu/" target="_blank">Link</a></td>
-            </tr>
-            <tr>
-                <td>72</td>
-                <td>Defiance Daily Target 2X Long SOUN ETF</td>
-                <td>SOUX US</td>
-                <td class="numeric">24.6</td>
-                <td class="numeric">1.29%</td>
-                <td>ETF</td>
-                <td><a href="https://www.defianceetfs.com/soux/" target="_blank">Link</a></td>
-            </tr>
-            <tr>
-                <td>73</td>
-                <td>GraniteShares 2x Long MSFT Daily ETF</td>
-                <td>MSFL US</td>
-                <td class="numeric">24.44</td>
-                <td class="numeric">1.15%</td>
-                <td>ETF</td>
-                <td><a href="https://graniteshares.com/institutional/us/en-us/etfs/msfl/" target="_blank">Link</a></td>
-            </tr>
-            <tr>
-                <td>74</td>
-                <td>Defiance Daily Target 2X Long HOOD ETF</td>
-                <td>HOOX US</td>
-                <td class="numeric">23.01</td>
-                <td class="numeric">1.29%</td>
-                <td>ETF</td>
-                <td><a href="https://www.defianceetfs.com/hoox/" target="_blank">Link</a></td>
-            </tr>
-            <tr>
-                <td>75</td>
-                <td>Direxion Daily AAPL Bear 1x Shares</td>
-                <td>AAPD US</td>
-                <td class="numeric">22.9</td>
-                <td class="numeric">1.00%</td>
-                <td>ETF</td>
-                <td><a href="https://www.direxion.com/product/daily-aapl-bear-1x-shares" target="_blank">Link</a></td>
-            </tr>
-            <tr>
-                <td>76</td>
-                <td>Leverage Shares 2X Long CRWV Daily ETF</td>
-                <td>CRWG US</td>
-                <td class="numeric">21.58</td>
-                <td class="numeric">0.75%</td>
-                <td>ETF</td>
-                <td><a href="https://leverageshares.com/us/etfs/leverage-shares-2x-long-crwv-daily-etf/" target="_blank">Link</a></td>
-            </tr>
-            <tr>
-                <td>77</td>
-                <td>GraniteShares 2x Long IONQ Daily ETF</td>
-                <td>IONL US</td>
-                <td class="numeric">18.98</td>
-                <td class="numeric">1.30%</td>
-                <td>ETF</td>
-                <td><a href="https://graniteshares.com/institutional/us/en-us/etfs/ionl/" target="_blank">Link</a></td>
-            </tr>
-            <tr>
-                <td>78</td>
-                <td>Leverage Shares 2X Long PLTR Daily ETF</td>
-                <td>PLTG US</td>
-                <td class="numeric">17.97</td>
-                <td class="numeric">0.75%</td>
-                <td>ETF</td>
-                <td><a href="https://leverageshares.com/us/etfs/leverage-shares-2x-long-pltr-daily-etf/" target="_blank">Link</a></td>
-            </tr>
-            <tr>
-                <td>79</td>
-                <td>GraniteShares 2x Long TSM Daily ETF</td>
-                <td>TSMU US</td>
-                <td class="numeric">17.94</td>
-                <td class="numeric">1.50%</td>
-                <td>ETF</td>
-                <td><a href="https://graniteshares.com/institutional/us/en-us/etfs/tsmu/" target="_blank">Link</a></td>
-            </tr>
-            <tr>
-                <td>80</td>
-                <td>Leverage Shares 2X Long ASML Daily ETF</td>
-                <td>ASMG US</td>
-                <td class="numeric">17.77</td>
-                <td class="numeric">0.75%</td>
-                <td>ETF</td>
-                <td><a href="https://leverageshares.com/us/etfs/leverage-shares-2x-asml-long-etf/" target="_blank">Link</a></td>
-            </tr>
-            <tr>
-                <td>81</td>
-                <td>Direxion Daily Googl Bear 1x Shares</td>
-                <td>GGLS US</td>
-                <td class="numeric">17.52</td>
-                <td class="numeric">1.02%</td>
-                <td>ETF</td>
-                <td><a href="https://www.direxion.com/product/daily-googl-bear-1x-shares" target="_blank">Link</a></td>
-            </tr>
-            <tr>
-                <td>82</td>
-                <td>Leverage Shares 2X Long CRM Daily ETF</td>
-                <td>CRMG US</td>
-                <td class="numeric">17.1</td>
-                <td class="numeric">0.75%</td>
-                <td>ETF</td>
-                <td><a href="https://leverageshares.com/us/etfs/leverage-shares-2x-long-crm-daily-etf/" target="_blank">Link</a></td>
-            </tr>
-            <tr>
-                <td>83</td>
-                <td>GraniteShares 2x Short COIN Daily ETF</td>
-                <td>CONI US</td>
-                <td class="numeric">17.08</td>
-                <td class="numeric">1.15%</td>
-                <td>ETF</td>
-                <td><a href="https://graniteshares.com/institutional/us/en-us/etfs/coni/" target="_blank">Link</a></td>
-            </tr>
-            <tr>
-                <td>84</td>
-                <td>Leverage Shares 2X Long NVDA Daily ETF</td>
-                <td>NVDG US</td>
-                <td class="numeric">16.3</td>
-                <td class="numeric">0.75%</td>
-                <td>ETF</td>
-                <td><a href="https://leverageshares.com/us/etfs/leverage-shares-2x-long-nvda-daily-etf/" target="_blank">Link</a></td>
-            </tr>
-            <tr>
-                <td>85</td>
-                <td>T-Rex 2X Long Apple Daily Target ETF</td>
-                <td>AAPX US</td>
-                <td class="numeric">15.86</td>
-                <td class="numeric">1.05%</td>
-                <td>ETF</td>
-                <td><a href="https://www.rexshares.com/aapx/" target="_blank">Link</a></td>
-            </tr>
-            <tr>
-                <td>86</td>
-                <td>GraniteShares 1.25 Long TSLA Daily ETF</td>
-                <td>TSL US</td>
-                <td class="numeric">14.49</td>
-                <td class="numeric">1.15%</td>
-                <td>ETF</td>
-                <td><a href="https://graniteshares.com/institutional/us/en-us/etfs/tsl/" target="_blank">Link</a></td>
-            </tr>
-            <tr>
-                <td>87</td>
-                <td>Direxion Daily PANW Bull 2X Shares</td>
-                <td>PALU US</td>
-                <td class="numeric">13.5</td>
-                <td class="numeric">0.97%</td>
-                <td>ETF</td>
-                <td><a href="https://www.direxion.com/product/daily-panw-bull-2x-shares" target="_blank">Link</a></td>
-            </tr>
-            <tr>
-                <td>88</td>
-                <td>GraniteShares 2x Long DELL Daily ETF</td>
-                <td>DLLL US</td>
-                <td class="numeric">13.4</td>
-                <td class="numeric">1.50%</td>
-                <td>ETF</td>
-                <td><a href="https://graniteshares.com/institutional/us/en-us/etfs/dlll/" target="_blank">Link</a></td>
-            </tr>
-            <tr>
-                <td>89</td>
-                <td>Leverage Shares 2X Long AMD Daily ETF</td>
-                <td>AMDG US</td>
-                <td class="numeric">12.98</td>
-                <td class="numeric">0.75%</td>
-                <td>ETF</td>
-                <td><a href="https://leverageshares.com/us/etfs/leverage-shares-2x-amd-long-etf/" target="_blank">Link</a></td>
-            </tr>
-            <tr>
-                <td>90</td>
-                <td>GraniteShares 2x Long VRT Daily ETF</td>
-                <td>VRTL US</td>
-                <td class="numeric">12.88</td>
-                <td class="numeric">1.30%</td>
-                <td>ETF</td>
-                <td><a href="https://graniteshares.com/institutional/us/en-us/etfs/vrtl/" target="_blank">Link</a></td>
-            </tr>
-            <tr>
-                <td>91</td>
-                <td>Direxion Daily BA Bull 2X Shares</td>
-                <td>BOEU US</td>
-                <td class="numeric">12.88</td>
-                <td class="numeric">0.95%</td>
-                <td>ETF</td>
-                <td><a href="https://www.direxion.com/product/daily-ba-bull-2x-shares" target="_blank">Link</a></td>
-            </tr>
-            <tr>
-                <td>92</td>
-                <td>Tradr 2X Long ACHR Daily ETF</td>
-                <td>ARCX US</td>
-                <td class="numeric">12.53</td>
-                <td class="numeric">1.30%</td>
-                <td>ETF</td>
-                <td><a href="https://www.tradretfs.com/arcx?hsLang=en" target="_blank">Link</a></td>
-            </tr>
-            <tr>
-                <td>93</td>
-                <td>T-Rex 2X Long DJT Daily Target ETF</td>
-                <td>DJTU US</td>
-                <td class="numeric">12.52</td>
-                <td class="numeric">1.05%</td>
-                <td>ETF</td>
-                <td><a href="https://www.rexshares.com/djtu/" target="_blank">Link</a></td>
-            </tr>
-            <tr>
-                <td>94</td>
-                <td>Leverage Shares 2X Long ARM Daily ETF</td>
-                <td>ARMG US</td>
-                <td class="numeric">12.08</td>
-                <td class="numeric">0.75%</td>
-                <td>ETF</td>
-                <td><a href="https://leverageshares.com/us/etfs/leverage-shares-2x-long-arm-daily-etf/" target="_blank">Link</a></td>
-            </tr>
-            <tr>
-                <td>95</td>
-                <td>KraneShares 2x Long PDD Daily ETF</td>
-                <td>KPDD US</td>
-                <td class="numeric">11.79</td>
-                <td class="numeric">1.27%</td>
-                <td>ETF</td>
-                <td><a href="https://kraneshares.com/kpdd/" target="_blank">Link</a></td>
-            </tr>
-            <tr>
-                <td>96</td>
-                <td>T-REX 2X Long RBLX Daily Target ETF</td>
-                <td>RBLU US</td>
-                <td class="numeric">11.56</td>
-                <td class="numeric">1.05%</td>
-                <td>ETF</td>
-                <td><a href="https://www.rexshares.com/rblu/" target="_blank">Link</a></td>
-            </tr>
-            <tr>
-                <td>97</td>
-                <td>Tradr 2X Long QUBT Daily ETF</td>
-                <td>QUBX US</td>
-                <td class="numeric">10.9</td>
-                <td class="numeric">1.30%</td>
-                <td>ETF</td>
-                <td><a href="https://www.tradretfs.com/qubx?hsLang=en" target="_blank">Link</a></td>
-            </tr>
-            <tr>
-                <td>98</td>
-                <td>GraniteShares 2x Long MU Daily ETF</td>
-                <td>MULL US</td>
-                <td class="numeric">10.71</td>
-                <td class="numeric">1.50%</td>
-                <td>ETF</td>
-                <td><a href="https://graniteshares.com/institutional/us/en-us/etfs/mull/" target="_blank">Link</a></td>
-            </tr>
-            <tr>
-                <td>99</td>
-                <td>Leverage Shares 2X Long CRCL Daily ETF</td>
-                <td>CRCG US</td>
-                <td class="numeric">10.63</td>
-                <td class="numeric">0.75%</td>
-                <td>ETF</td>
-                <td><a href="https://leverageshares.com/us/etfs/leverage-shares-2x-long-crcl-daily-etf/" target="_blank">Link</a></td>
-            </tr>
-            <tr>
-                <td>100</td>
-                <td>Tradr 2X Long GEV Daily ETF</td>
-                <td>GEVX US</td>
-                <td class="numeric">9.85</td>
-                <td class="numeric">1.30%</td>
-                <td>ETF</td>
-                <td><a href="https://www.tradretfs.com/gevx?hsLang=en" target="_blank">Link</a></td>
-            </tr>
-            <tr>
-                <td>101</td>
-                <td>T-Rex 2X Long Microsoft Daily Target ETF</td>
-                <td>MSFX US</td>
-                <td class="numeric">9.17</td>
-                <td class="numeric">1.05%</td>
-                <td>ETF</td>
-                <td><a href="https://www.rexshares.com/msfx/" target="_blank">Link</a></td>
-            </tr>
-            <tr>
-                <td>102</td>
-                <td>T-REX 2x Long GLXY Daily Target ETF</td>
-                <td>GLXU US</td>
-                <td class="numeric">8.98</td>
-                <td class="numeric">1.50%</td>
-                <td>ETF</td>
-                <td><a href="https://www.rexshares.com/glxu/" target="_blank">Link</a></td>
-            </tr>
-            <tr>
-                <td>103</td>
-                <td>Tradr 2X Long ALAB Daily ETF</td>
-                <td>LABX US</td>
-                <td class="numeric">8.5</td>
-                <td class="numeric">1.30%</td>
-                <td>ETF</td>
-                <td><a href="https://www.tradretfs.com/labx?hsLang=en" target="_blank">Link</a></td>
-            </tr>
-            <tr>
-                <td>104</td>
-                <td>Direxion Daily AMD Bear 1X Shares</td>
-                <td>AMDD US</td>
-                <td class="numeric">8.38</td>
-                <td class="numeric">1.50%</td>
-                <td>ETF</td>
-                <td><a href="https://www.direxion.com/product/daily-amd-bear-1x-shares" target="_blank">Link</a></td>
-            </tr>
-            <tr>
-                <td>105</td>
-                <td>Direxion Daily NFLX Bear 1X Shares</td>
-                <td>NFXS US</td>
-                <td class="numeric">8.36</td>
-                <td class="numeric">0.99%</td>
-                <td>ETF</td>
-                <td><a href="https://www.direxion.com/product/daily-nflx-bear-1x-shares" target="_blank">Link</a></td>
-            </tr>
-            <tr>
-                <td>106</td>
-                <td>T-REX 2x Long CRCL Daily Target ETF</td>
-                <td>CCUP US</td>
-                <td class="numeric">8.25</td>
-                <td class="numeric">1.50%</td>
-                <td>ETF</td>
-                <td><a href="https://www.rexshares.com/ccup/" target="_blank">Link</a></td>
-            </tr>
-            <tr>
-                <td>107</td>
-                <td>T-REX 2x Long CRWV Daily Target ETF</td>
-                <td>CRWU US</td>
-                <td class="numeric">8.07</td>
-                <td class="numeric">1.50%</td>
-                <td>ETF</td>
-                <td><a href="https://www.rexshares.com/crwu/" target="_blank">Link</a></td>
-            </tr>
-            <tr>
-                <td>108</td>
-                <td>Leverage Shares 2X Long ADBE Daily ETF</td>
-                <td>ADBG US</td>
-                <td class="numeric">7.7</td>
-                <td class="numeric">0.75%</td>
-                <td>ETF</td>
-                <td><a href="https://leverageshares.com/us/etfs/leverage-shares-2x-long-adbe-daily-etf/" target="_blank">Link</a></td>
-            </tr>
-            <tr>
-                <td>109</td>
-                <td>GraniteShares 2x Long LCID Daily ETF</td>
-                <td>LCDL US</td>
-                <td class="numeric">7.57</td>
-                <td class="numeric">1.15%</td>
-                <td>ETF</td>
-                <td><a href="https://graniteshares.com/institutional/us/en-us/etfs/lcdl/" target="_blank">Link</a></td>
-            </tr>
-            <tr>
-                <td>110</td>
-                <td>Defiance Daily Target 2X Short IONQ ETF</td>
-                <td>IONZ US</td>
-                <td class="numeric">7.4</td>
-                <td class="numeric">1.29%</td>
-                <td>ETF</td>
-                <td><a href="https://www.defianceetfs.com/ionz/" target="_blank">Link</a></td>
-            </tr>
-            <tr>
-                <td>111</td>
-                <td>Leverage Shares 2X Long COIN Daily ETF</td>
-                <td>COIG US</td>
-                <td class="numeric">7.13</td>
-                <td class="numeric">0.75%</td>
-                <td>ETF</td>
-                <td><a href="https://leverageshares.com/us/etfs/leverage-shares-2x-long-coin-daily-etf/" target="_blank">Link</a></td>
-            </tr>
-            <tr>
-                <td>112</td>
-                <td>Direxion Daily META Bear 1X Shares</td>
-                <td>METD US</td>
-                <td class="numeric">6.81</td>
-                <td class="numeric">1.00%</td>
-                <td>ETF</td>
-                <td><a href="https://www.direxion.com/product/daily-meta-bear-1x-shares" target="_blank">Link</a></td>
-            </tr>
-            <tr>
-                <td>113</td>
-                <td>Leverage Shares 2X Long PANW Daily ETF</td>
-                <td>PANG US</td>
-                <td class="numeric">6.29</td>
-                <td class="numeric">0.75%</td>
-                <td>ETF</td>
-                <td><a href="https://leverageshares.com/us/etfs/leverage-shares-2x-long-panw-daily-etf/" target="_blank">Link</a></td>
-            </tr>
-            <tr>
-                <td>114</td>
-                <td>T-REX 2X Long SNOW Daily Target ETF</td>
-                <td>SNOU US</td>
-                <td class="numeric">5.98</td>
-                <td class="numeric">1.50%</td>
-                <td>ETF</td>
-                <td><a href="https://www.rexshares.com/snou/" target="_blank">Link</a></td>
-            </tr>
-            <tr>
-                <td>115</td>
-                <td>GraniteShares 2x Long NOW Daily ETF</td>
-                <td>NOWL US</td>
-                <td class="numeric">5.73</td>
-                <td class="numeric">1.30%</td>
-                <td>ETF</td>
-                <td><a href="https://graniteshares.com/institutional/us/en-us/etfs/nowl/" target="_blank">Link</a></td>
-            </tr>
-            <tr>
-                <td>116</td>
-                <td>Direxion Daily SHOP Bull 2X ETF</td>
-                <td>SHPU US</td>
-                <td class="numeric">5.44</td>
-                <td class="numeric">0.95%</td>
-                <td>ETF</td>
-                <td><a href="https://www.direxion.com/product/daily-shop-bull-2x-etf" target="_blank">Link</a></td>
-            </tr>
-            <tr>
-                <td>117</td>
-                <td>Leverage Shares 2X Long PYPL Daily ETF</td>
-                <td>PYPG US</td>
-                <td class="numeric">5.37</td>
-                <td class="numeric">0.75%</td>
-                <td>ETF</td>
-                <td><a href="https://leverageshares.com/us/etfs/leverage-shares-2x-long-pypl-daily-etf/" target="_blank">Link</a></td>
-            </tr>
-            <tr>
-                <td>118</td>
-                <td>Direxion Daily AMZN Bear 1X Shares</td>
-                <td>AMZD US</td>
-                <td class="numeric">5.33</td>
-                <td class="numeric">1.02%</td>
-                <td>ETF</td>
-                <td><a href="https://www.direxion.com/product/daily-amzn-bear-1x-shares" target="_blank">Link</a></td>
-            </tr>
-            <tr>
-                <td>119</td>
-                <td>Direxion Daily LLY Bear 1X Shares</td>
-                <td>ELIS US</td>
-                <td class="numeric">5.25</td>
-                <td class="numeric">0.95%</td>
-                <td>ETF</td>
-                <td><a href="https://www.direxion.com/product/daily-lly-bear-1x-shares" target="_blank">Link</a></td>
-            </tr>
-            <tr>
-                <td>120</td>
-                <td>Direxion Daily CSCO Bull 2X ETF</td>
-                <td>CSCL US</td>
-                <td class="numeric">4.92</td>
-                <td class="numeric">0.95%</td>
-                <td>ETF</td>
-                <td><a href="https://www.direxion.com/product/daily-csco-bull-2x-etf" target="_blank">Link</a></td>
-            </tr>
-            <tr>
-                <td>121</td>
-                <td>GraniteShares 2x Long QCOM Daily ETF</td>
-                <td>QCML US</td>
-                <td class="numeric">4.71</td>
-                <td class="numeric">1.30%</td>
-                <td>ETF</td>
-                <td><a href="https://graniteshares.com/institutional/us/en-us/etfs/qcml/" target="_blank">Link</a></td>
-            </tr>
-            <tr>
-                <td>122</td>
-                <td>Leverage Shares 2X Long AVGO Daily ETF</td>
-                <td>AVGG US</td>
-                <td class="numeric">4.63</td>
-                <td class="numeric">0.75%</td>
-                <td>ETF</td>
-                <td><a href="https://leverageshares.com/us/etfs/leverage-shares-2x-long-avgo-daily-etf/" target="_blank">Link</a></td>
-            </tr>
-            <tr>
-                <td>123</td>
-                <td>Direxion Daily LMT Bull 2X ETF</td>
-                <td>LMTL US</td>
-                <td class="numeric">4.28</td>
-                <td class="numeric">0.95%</td>
-                <td>ETF</td>
-                <td><a href="https://www.direxion.com/product/daily-lmt-bull-2x-etf" target="_blank">Link</a></td>
-            </tr>
-            <tr>
-                <td>124</td>
-                <td>Direxion Daily Tsm Bear 1x Shares</td>
-                <td>TSMZ US</td>
-                <td class="numeric">3.67</td>
-                <td class="numeric">0.98%</td>
-                <td>ETF</td>
-                <td><a href="https://www.direxion.com/product/daily-tsm-bear-1x-shares" target="_blank">Link</a></td>
-            </tr>
-            <tr>
-                <td>125</td>
-                <td>Leverage Shares 2X Long TSM Daily ETF</td>
-                <td>TSMG US</td>
-                <td class="numeric">3.64</td>
-                <td class="numeric">0.75%</td>
-                <td>ETF</td>
-                <td><a href="https://leverageshares.com/us/etfs/leverage-shares-2x-long-tsm-daily-etf/" target="_blank">Link</a></td>
-            </tr>
-            <tr>
-                <td>126</td>
-                <td>Direxion Daily PANW Bear 1X Shares</td>
-                <td>PALD US</td>
-                <td class="numeric">3.52</td>
-                <td class="numeric">0.97%</td>
-                <td>ETF</td>
-                <td><a href="https://www.direxion.com/product/daily-panw-bear-1x-shares" target="_blank">Link</a></td>
-            </tr>
-            <tr>
-                <td>127</td>
-                <td>Tradr 2X Long MDB Daily ETF</td>
-                <td>MDBX US</td>
-                <td class="numeric">3.44</td>
-                <td class="numeric">1.30%</td>
-                <td>ETF</td>
-                <td><a href="https://www.tradretfs.com/mdbx?hsLang=en" target="_blank">Link</a></td>
-            </tr>
-            <tr>
-                <td>128</td>
-                <td>Direxion Daily XOM Bull 2X Shares</td>
-                <td>XOMX US</td>
-                <td class="numeric">3.28</td>
-                <td class="numeric">0.97%</td>
-                <td>ETF</td>
-                <td><a href="https://www.direxion.com/product/daily-xom-bull-2x-shares" target="_blank">Link</a></td>
-            </tr>
-            <tr>
-                <td>129</td>
-                <td>Direxion Daily QCOM Bull 2X ETF</td>
-                <td>QCMU US</td>
-                <td class="numeric">3.2</td>
-                <td class="numeric">0.95%</td>
-                <td>ETF</td>
-                <td><a href="https://www.direxion.com/product/daily-qcom-bull-2x-etf" target="_blank">Link</a></td>
-            </tr>
-            <tr>
-                <td>130</td>
-                <td>Direxion Daily QCOM Bear 1X ETF</td>
-                <td>QCMD US</td>
-                <td class="numeric">3.03</td>
-                <td class="numeric">0.95%</td>
-                <td>ETF</td>
-                <td><a href="https://www.direxion.com/product/daily-qcom-bear-1x-etf" target="_blank">Link</a></td>
-            </tr>
-            <tr>
-                <td>131</td>
-                <td>GraniteShares 2x Long AVGO Daily ETF</td>
-                <td>AVGU US</td>
-                <td class="numeric">3.01</td>
-                <td class="numeric">1.50%</td>
-                <td>ETF</td>
-                <td><a href="https://graniteshares.com/institutional/us/en-us/etfs/avgu/" target="_blank">Link</a></td>
-            </tr>
-            <tr>
-                <td>132</td>
-                <td>T-REX 2x Long SMR Daily Target ETF</td>
-                <td>SMUP US</td>
-                <td class="numeric">2.91</td>
-                <td class="numeric">1.50%</td>
-                <td>ETF</td>
-                <td><a href="https://www.rexshares.com/smup/" target="_blank">Link</a></td>
-            </tr>
-            <tr>
-                <td>133</td>
-                <td>Direxion Daily BRKB Bear 1X Shares</td>
-                <td>BRKD US</td>
-                <td class="numeric">2.86</td>
-                <td class="numeric">0.97%</td>
-                <td>ETF</td>
-                <td><a href="https://www.direxion.com/product/daily-brkb-bear-1x-shares" target="_blank">Link</a></td>
-            </tr>
-            <tr>
-                <td>134</td>
-                <td>Direxion Daily F Bull 2X ETF</td>
-                <td>FRDU US</td>
-                <td class="numeric">2.74</td>
-                <td class="numeric">0.95%</td>
-                <td>ETF</td>
-                <td><a href="https://www.direxion.com/product/daily-f-bull-2x-etf" target="_blank">Link</a></td>
-            </tr>
-            <tr>
-                <td>135</td>
-                <td>Leverage Shares 2X Long XYZ Daily ETF</td>
-                <td>XYZG US</td>
-                <td class="numeric">2.71</td>
-                <td class="numeric">0.75%</td>
-                <td>ETF</td>
-                <td><a href="https://leverageshares.com/us/etfs/leverage-shares-2x-long-xyz-daily-etf/" target="_blank">Link</a></td>
-            </tr>
-            <tr>
-                <td>136</td>
-                <td>Direxion Daily MU Bear 1X Shares</td>
-                <td>MUD US</td>
-                <td class="numeric">2.67</td>
-                <td class="numeric">0.97%</td>
-                <td>ETF</td>
-                <td><a href="https://www.direxion.com/product/daily-mu-bear-1x-shares" target="_blank">Link</a></td>
-            </tr>
-            <tr>
-                <td>137</td>
-                <td>Direxion Daily SHOP Bear 1X ETF</td>
-                <td>SHPD US</td>
-                <td class="numeric">2.6</td>
-                <td class="numeric">0.95%</td>
-                <td>ETF</td>
-                <td><a href="https://www.direxion.com/product/daily-shop-bear-1x-etf" target="_blank">Link</a></td>
-            </tr>
-            <tr>
-                <td>138</td>
-                <td>Defiance Daily Target 2X Long VST ETF</td>
-                <td>VSTL US</td>
-                <td class="numeric">2.55</td>
-                <td class="numeric">1.29%</td>
-                <td>ETF</td>
-                <td><a href="https://www.defianceetfs.com/vstl/" target="_blank">Link</a></td>
-            </tr>
-            <tr>
-                <td>139</td>
-                <td>Direxion Daily CSCO Bear 1X ETF</td>
-                <td>CSCS US</td>
-                <td class="numeric">2.5</td>
-                <td class="numeric">0.95%</td>
-                <td>ETF</td>
-                <td><a href="https://www.direxion.com/product/daily-csco-bear-1x-etf" target="_blank">Link</a></td>
-            </tr>
-            <tr>
-                <td>140</td>
-                <td>GraniteShares 2x Long PDD Daily ETF</td>
-                <td>PDDL US</td>
-                <td class="numeric">2.49</td>
-                <td class="numeric">1.30%</td>
-                <td>ETF</td>
-                <td><a href="https://graniteshares.com/institutional/us/en-us/etfs/pddl/" target="_blank">Link</a></td>
-            </tr>
-            <tr>
-                <td>141</td>
-                <td>KraneShares 2x Long BABA Daily ETF</td>
-                <td>KBAB US</td>
-                <td class="numeric">2.45</td>
-                <td class="numeric">1.00%</td>
-                <td>ETF</td>
-                <td><a href="https://kraneshares.com/kbab/" target="_blank">Link</a></td>
-            </tr>
-            <tr>
-                <td>142</td>
-                <td>KraneShares 2x Long MELI Daily ETF</td>
-                <td>KMLI US</td>
-                <td class="numeric">2.44</td>
-                <td class="numeric">1.26%</td>
-                <td>ETF</td>
-                <td><a href="https://kraneshares.com/kmli/" target="_blank">Link</a></td>
-            </tr>
-            <tr>
-                <td>143</td>
-                <td>Tradr 2X Long RGTI Daily ETF</td>
-                <td>RGTU US</td>
-                <td class="numeric">2.39</td>
-                <td class="numeric">1.30%</td>
-                <td>ETF</td>
-                <td><a href="https://www.tradretfs.com/rgtu?hsLang=en" target="_blank">Link</a></td>
-            </tr>
-            <tr>
-                <td>144</td>
-                <td>Direxion Daily XOM Bear 1X Shares</td>
-                <td>XOMZ US</td>
-                <td class="numeric">2.38</td>
-                <td class="numeric">0.97%</td>
-                <td>ETF</td>
-                <td><a href="https://www.direxion.com/product/daily-xom-bear-1x-shares" target="_blank">Link</a></td>
-            </tr>
-            <tr>
-                <td>145</td>
-                <td>Direxion Daily F Bear 1X ETF</td>
-                <td>FRDD US</td>
-                <td class="numeric">2.37</td>
-                <td class="numeric">0.95%</td>
-                <td>ETF</td>
-                <td><a href="https://www.direxion.com/product/daily-f-bear-1x-etf" target="_blank">Link</a></td>
-            </tr>
-            <tr>
-                <td>146</td>
-                <td>Direxion Daily LMT Bear 1X ETF</td>
-                <td>LMTS US</td>
-                <td class="numeric">2.34</td>
-                <td class="numeric">0.95%</td>
-                <td>ETF</td>
-                <td><a href="https://www.direxion.com/product/daily-lmt-bear-1x-etf" target="_blank">Link</a></td>
-            </tr>
-            <tr>
-                <td>147</td>
-                <td>Defiance Daily Target 2X Long DKNG ETF</td>
-                <td>DKNX US</td>
-                <td class="numeric">2.3</td>
-                <td class="numeric">1.29%</td>
-                <td>ETF</td>
-                <td><a href="https://www.defianceetfs.com/dknx/" target="_blank">Link</a></td>
-            </tr>
-            <tr>
-                <td>148</td>
-                <td>Direxion Daily BA Bear 1X Shares</td>
-                <td>BOED US</td>
-                <td class="numeric">2.18</td>
-                <td class="numeric">0.95%</td>
-                <td>ETF</td>
-                <td><a href="https://www.direxion.com/product/daily-ba-bear-1x-shares" target="_blank">Link</a></td>
-            </tr>
-            <tr>
-                <td>149</td>
-                <td>Tradr 2X Long CEG Daily ETF</td>
-                <td>CEGX US</td>
-                <td class="numeric">2.13</td>
-                <td class="numeric">1.30%</td>
-                <td>ETF</td>
-                <td><a href="https://www.tradretfs.com/cegx?hsLang=en" target="_blank">Link</a></td>
-            </tr>
-            <tr>
-                <td>150</td>
-                <td>Defiance Daily Target 2X Long JPM ETF</td>
-                <td>JPX US</td>
-                <td class="numeric">2.06</td>
-                <td class="numeric">1.29%</td>
-                <td>ETF</td>
-                <td><a href="https://www.defianceetfs.com/jpx/" target="_blank">Link</a></td>
-            </tr>
-            <tr>
-                <td>151</td>
-                <td>Defiance Daily Target 2X Long CVNA ETF</td>
-                <td>CVNX US</td>
-                <td class="numeric">2.04</td>
-                <td class="numeric">1.29%</td>
-                <td>ETF</td>
-                <td><a href="https://www.defianceetfs.com/cvnx/" target="_blank">Link</a></td>
-            </tr>
-            <tr>
-                <td>152</td>
-                <td>T-Rex 2X Long ARM Daily Target ETF</td>
-                <td>ARMU US</td>
-                <td class="numeric">1.94</td>
-                <td class="numeric">1.05%</td>
-                <td>ETF</td>
-                <td><a href="https://www.rexshares.com/armu/" target="_blank">Link</a></td>
-            </tr>
-            <tr>
-                <td>153</td>
-                <td>Leverage Shares 2X Long BULL Daily ETF</td>
-                <td>BULG US</td>
-                <td class="numeric">1.46</td>
-                <td class="numeric">0.75%</td>
-                <td>ETF</td>
-                <td><a href="https://leverageshares.com/us/etfs/leverage-shares-2x-long-bull-daily-etf/" target="_blank">Link</a></td>
-            </tr>
-            <tr>
-                <td>154</td>
-                <td>T-REX 2X Long BULL Daily Target ETF</td>
-                <td>BULU US</td>
-                <td class="numeric">1.26</td>
-                <td class="numeric">1.50%</td>
-                <td>ETF</td>
-                <td><a href="https://www.rexshares.com/bulu/" target="_blank">Link</a></td>
-            </tr>
-            <tr>
-                <td>155</td>
-                <td>Leverage Shares 2X Long BA Daily ETF</td>
-                <td>BOEG US</td>
-                <td class="numeric">1.1</td>
-                <td class="numeric">0.75%</td>
-                <td>ETF</td>
-                <td><a href="https://leverageshares.com/us/etfs/leverage-shares-2x-long-ba-daily-etf/" target="_blank">Link</a></td>
-            </tr>
-            <tr>
-                <td>156</td>
-                <td>Defiance Daily Target 2x Long ANET ETF</td>
-                <td>ANEL US</td>
-                <td class="numeric">1.05</td>
-                <td class="numeric">1.29%</td>
-                <td>ETF</td>
-                <td><a href="https://www.defianceetfs.com/anel/" target="_blank">Link</a></td>
-            </tr>
-            <tr>
-                <td>157</td>
-                <td>Defiance Daily Target 2X Short LLY ETF</td>
-                <td>LLYZ US</td>
-                <td class="numeric">0.98</td>
-                <td class="numeric">1.29%</td>
-                <td>ETF</td>
-                <td><a href="https://www.defianceetfs.com/llyz/" target="_blank">Link</a></td>
-            </tr>
-            <tr>
-                <td>158</td>
-                <td>Defiance Daily Target 2x Long PM ETF</td>
-                <td>ZYN US</td>
-                <td class="numeric">0.97</td>
-                <td class="numeric">1.29%</td>
-                <td>ETF</td>
-                <td><a href="https://www.defianceetfs.com/zyn/" target="_blank">Link</a></td>
-            </tr>
-            <tr>
-                <td>159</td>
-                <td>Leverage Shares 2X Long RTX Daily ETF</td>
-                <td>RTXG US</td>
-                <td class="numeric">0.95</td>
-                <td class="numeric">0.75%</td>
-                <td>ETF</td>
-                <td><a href="https://leverageshares.com/us/etfs/leverage-shares-2x-long-rtx-daily-etf/" target="_blank">Link</a></td>
-            </tr>
-            <tr>
-                <td>160</td>
-                <td>GraniteShares 2x Long MSTR Daily ETF</td>
-                <td>MSTP US</td>
-                <td class="numeric">0.93</td>
-                <td class="numeric">1.30%</td>
-                <td>ETF</td>
-                <td><a href="https://graniteshares.com/institutional/us/en-us/etfs/mstp/" target="_blank">Link</a></td>
-            </tr>
-            <tr>
-                <td>161</td>
-                <td>Tradr 2X Long DDOG Daily ETF</td>
-                <td>DOGD US</td>
-                <td class="numeric">0.77</td>
-                <td class="numeric">1.30%</td>
-                <td>ETF</td>
-                <td><a href="https://www.tradretfs.com/dogd" target="_blank">Link</a></td>
-            </tr>
-            <tr>
-                <td>162</td>
-                <td>GraniteShares 2x Long ETOR Daily ETF</td>
-                <td>ETRL US</td>
-                <td class="numeric">0.73</td>
-                <td class="numeric">1.30%</td>
-                <td>ETF</td>
-                <td><a href="https://graniteshares.com/institutional/us/en-us/etfs/etrl/" target="_blank">Link</a></td>
-            </tr>
-            <tr>
-                <td>163</td>
-                <td>GraniteShares 2x Long BULL Daily ETF</td>
-                <td>BULX US</td>
-                <td class="numeric">0.73</td>
-                <td class="numeric">1.30%</td>
-                <td>ETF</td>
-                <td><a href="https://graniteshares.com/institutional/us/en-us/etfs/bulx/" target="_blank">Link</a></td>
-            </tr>
-            <tr>
-                <td>164</td>
-                <td>Leverage Shares 2X Long AAL Daily ETF</td>
-                <td>AALG US</td>
-                <td class="numeric">0.69</td>
-                <td class="numeric">0.75%</td>
-                <td>ETF</td>
-                <td><a href="https://leverageshares.com/us/etfs/leverage-shares-2x-long-aal-daily-etf/" target="_blank">Link</a></td>
-            </tr>
-            <tr>
-                <td>165</td>
-                <td>GraniteShares 2x Short MSTR Daily ETF</td>
-                <td>MSDD US</td>
-                <td class="numeric">0.59</td>
-                <td class="numeric">1.30%</td>
-                <td>ETF</td>
-                <td><a href="https://graniteshares.com/institutional/us/en-us/etfs/msdd/" target="_blank">Link</a></td>
-            </tr>
-            <tr>
-                <td>166</td>
-                <td>Leverage Shares 2X Long BBAI Daily ETF</td>
-                <td>BAIG US</td>
-                <td class="numeric">0.57</td>
-                <td class="numeric">0.75%</td>
-                <td>ETF</td>
-                <td><a href="https://leverageshares.com/us/etfs/leverage-shares-2x-long-bbai-daily-etf/" target="_blank">Link</a></td>
-            </tr>
-            <tr>
-                <td>167</td>
-                <td>Leverage Shares 2X Long GLXY Daily ETF</td>
-                <td>GLGG US</td>
-                <td class="numeric">0.32</td>
-                <td class="numeric">0.75%</td>
-                <td>ETF</td>
-                <td><a href="https://leverageshares.com/us/etfs/leverage-shares-2x-long-glxy-daily-etf/" target="_blank">Link</a></td>
-            </tr>
-            <tr>
-                <td>168</td>
-                <td>T-REX 2X Long DKNG Daily Target ETF</td>
-                <td>DKUP US</td>
-                <td class="numeric">0.26</td>
-                <td class="numeric">1.50%</td>
-                <td>ETF</td>
-                <td><a href="https://www.rexshares.com/dkup/" target="_blank">Link</a></td>
-            </tr>
-        </tbody>
-    </table>
+        <tbody></tbody>
+      </table>
+    </section>
+  </main>
 
-    <script>
-        function sortTable(n) {
-            let table = document.getElementById("etfTable");
-            let switching = true;
-            let dir = "asc";
-            let switchcount = 0;
-            while (switching) {
-                switching = false;
-                let rows = table.rows;
-                for (let i = 1; i < (rows.length - 1); i++) {
-                    let shouldSwitch = false;
-                    let x = rows[i].getElementsByTagName("TD")[n];
-                    let y = rows[i + 1].getElementsByTagName("TD")[n];
-                    let xVal = getComparableValue(x);
-                    let yVal = getComparableValue(y);
-                    if (dir == "asc") {
-                        if (xVal > yVal) {
-                            shouldSwitch = true;
-                            break;
-                        }
-                    } else if (dir == "desc") {
-                        if (xVal < yVal) {
-                            shouldSwitch = true;
-                            break;
-                        }
-                    }
-                }
-                if (shouldSwitch) {
-                    rows[i].parentNode.insertBefore(rows[i + 1], rows[i]);
-                    switching = true;
-                    switchcount++;
-                } else {
-                    if (switchcount == 0 && dir == "asc") {
-                        dir = "desc";
-                        switching = true;
-                    }
-                }
-            }
-            updateRanks();
+  <script>
+    const SHEET_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vRy4-CVHi4Cy0pVDO72LuLi4XrpHGQqpPOf6esCKqBXd7Pilow15A-VLhP7dAqLgzggd6XHjMQ8pPmD/pub?output=csv";
+
+    const tbody = document.querySelector("#table tbody");
+    const filters = document.getElementById("filters");
+    const tableWrap = document.getElementById("tableWrap");
+    const errorDiv = document.getElementById("error");
+    const searchInput = document.getElementById("q");
+    const issuerSel = document.getElementById("issuer");
+    const underlyingSel = document.getElementById("underlying");
+    const dirSel = document.getElementById("direction");
+    const minRange = document.getElementById("minSigned");
+    const maxRange = document.getElementById("maxSigned");
+
+    let ROWS = [];
+    let sortKey = "assets";
+    let sortDir = "desc";
+
+    function parseCSV(text) {
+      const rows = [];
+      let cur = [], cell = "", inQuotes = false;
+      for (let i=0;i<text.length;i++) {
+        const ch = text[i], next=text[i+1];
+        if (ch === '"') {
+          if (inQuotes && next === '"') { cell += '"'; i++; }
+          else inQuotes = !inQuotes;
+        } else if (ch === ',' && !inQuotes) {
+          cur.push(cell); cell="";
+        } else if ((ch === '\n' || ch === '\r') && !inQuotes) {
+          if (cell !== "" || cur.length) { cur.push(cell); rows.push(cur); cur=[]; cell=""; }
+        } else {
+          cell += ch;
         }
+      }
+      if (cell.length || cur.length) { cur.push(cell); rows.push(cur); }
+      return rows;
+    }
 
-        function getComparableValue(cell) {
-            let text = cell.innerHTML.trim();
-            if (cell.classList.contains('numeric')) {
-                text = text.replace('%', '').replace(',', '');
-                return isNaN(parseFloat(text)) ? 0 : parseFloat(text);
-            }
-            return text.toLowerCase();
-        }
+    async function fetchSheetData() {
+      const resp = await fetch(SHEET_URL, { cache:"no-store" });
+      if (!resp.ok) throw new Error("Failed to fetch Google Sheet: " + resp.status);
+      const text = await resp.text();
+      const rows = parseCSV(text);
+      const headers = rows.shift().map(h => h.trim().toLowerCase());
+      return rows.filter(r => r.length > 1).map(row => {
+        let obj = {};
+        row.forEach((val,i)=>obj[headers[i]]=(val||"").trim());
+        return obj;
+      });
+    }
 
-        function updateRanks() {
-            let table = document.getElementById("etfTable");
-            let rows = table.tBodies[0].rows;
-            for (let i = 0; i < rows.length; i++) {
-                rows[i].cells[0].innerHTML = i + 1;
-            }
-        }
+    function normalizeRow(r) {
+      return {
+        ticker: r["ticker"] || "",
+        name: r["name"] || "",
+        issuer: r["issuer"] || "",
+        underlying: r["underlying"] || "",
+        assets: Number((r["assets"]||"").replace(/[^0-9.]/g,"")) || 0,
+        fee: Number((r["fee"]||"").replace(/[^0-9.]/g,"")) || 0,
+        lev: Number((r["leverage"]||"").replace(/[^0-9.+-]/g,"")) || 0,
+        dir: r["direction"] || "",
+        url: r["url"] || ""
+      };
+    }
 
-        function searchTable() {
-            let input = document.getElementById("searchInput");
-            let filter = input.value.toLowerCase();
-            let table = document.getElementById("etfTable");
-            let tr = table.getElementsByTagName("tr");
-            for (let i = 1; i < tr.length; i++) {
-                let tdName = tr[i].getElementsByTagName("td")[1];
-                let tdTicker = tr[i].getElementsByTagName("td")[2];
-                if (tdName || tdTicker) {
-                    let nameText = tdName.textContent || tdName.innerText;
-                    let tickerText = tdTicker.textContent || tdTicker.innerText;
-                    if (nameText.toLowerCase().indexOf(filter) > -1 || tickerText.toLowerCase().indexOf(filter) > -1) {
-                        tr[i].style.display = "";
-                    } else {
-                        tr[i].style.display = "none";
-                    }
-                }
-            }
-            updateRanks();
-        }
+    function formatNumber(val, decimals=0) {
+      if (isNaN(val)) return "";
+      return Number(val).toLocaleString(undefined,{minimumFractionDigits:decimals,maximumFractionDigits:decimals});
+    }
 
-        // Initial sort by Fund Assets descending
-        sortTable(3);
-        sortTable(3); // Call twice to toggle to desc
-    </script>
+    function populateFilters(rows) {
+      const issuers = [...new Set(rows.map(r=>r.issuer).filter(Boolean))].sort();
+      const underlyings = [...new Set(rows.map(r=>r.underlying).filter(Boolean))].sort();
+      issuerSel.innerHTML = '<option value="ALL">All</option>' + issuers.map(v=>`<option value="${v}">${v}</option>`).join("");
+      underlyingSel.innerHTML = '<option value="ALL">All</option>' + underlyings.map(v=>`<option value="${v}">${v}</option>`).join("");
+    }
+
+    function render() {
+      const qnorm = searchInput.value.trim().toLowerCase();
+      let data = [...ROWS];
+
+      if (qnorm) {
+        data = data.filter(r =>
+          (r.ticker+" "+r.name+" "+r.issuer+" "+r.underlying).toLowerCase().includes(qnorm)
+        );
+      }
+
+      if (dirSel.value !== "ALL") data = data.filter(r => r.dir.toLowerCase() === dirSel.value.toLowerCase());
+      if (issuerSel.value !== "ALL") data = data.filter(r => r.issuer.toLowerCase() === issuerSel.value.toLowerCase());
+      if (underlyingSel.value !== "ALL") data = data.filter(r => r.underlying.toLowerCase() === underlyingSel.value.toLowerCase());
+
+      const minLev = parseFloat(minRange.value||-3);
+      const maxLev = parseFloat(maxRange.value||3);
+      data = data.filter(r => r.lev >= minLev && r.lev <= maxLev);
+
+      data.sort((a,b)=>{
+        const av=a[sortKey], bv=b[sortKey];
+        if (!isNaN(av)&&!isNaN(bv)) return sortDir==="asc"?av-bv:bv-av;
+        return sortDir==="asc"?String(av).localeCompare(String(bv)):String(bv).localeCompare(String(av));
+      });
+
+      tbody.innerHTML = data.map((r,i)=>`
+        <tr>
+          <td>${i+1}</td>
+          <td>${r.ticker}</td>
+          <td>${r.name}</td>
+          <td>${r.issuer}</td>
+          <td>${r.underlying}</td>
+          <td>${r.assets ? `$${formatNumber(r.assets,0)}M` : ""}</td>
+          <td>${r.fee ? formatNumber(r.fee,2) + "%" : ""}</td>
+          <td>${r.lev===0?"0x":`<span class="${r.lev>0?"lev-pos":"lev-neg"}">${r.lev>0? "+"+r.lev:r.lev}x</span>`}</td>
+          <td>${r.dir}</td>
+          <td>${r.url?`<a href="${r.url}" target="_blank">Prospectus ↗</a>`:""}</td>
+        </tr>`).join("");
+    }
+
+    document.querySelectorAll("th[data-key]").forEach(th =>
+      th.addEventListener("click",()=>{
+        const key=th.dataset.key;
+        if (!key||key==="#") return;
+        if (sortKey===key) sortDir=sortDir==="asc"?"desc":"asc";
+        else {sortKey=key; sortDir="asc";}
+        render();
+      })
+    );
+
+    searchInput.addEventListener("input",render);
+    dirSel.addEventListener("change",render);
+    issuerSel.addEventListener("change",render);
+    underlyingSel.addEventListener("change",render);
+    minRange.addEventListener("input",render);
+    maxRange.addEventListener("input",render);
+
+    (async function bootstrap(){
+      try{
+        const raw=await fetchSheetData();
+        ROWS=raw.map(normalizeRow);
+        populateFilters(ROWS);
+        filters.classList.remove("hidden");
+        tableWrap.classList.remove("hidden");
+        render();
+      }catch(err){
+        errorDiv.textContent=err.message;
+        errorDiv.classList.remove("hidden");
+      }
+    })();
+  
+    function updateLevDisplay() {
+      const minLev = parseFloat(minRange.value);
+      const maxLev = parseFloat(maxRange.value);
+      let html = '';
+      function fmtLev(val) {
+        if (val === 0) return '<span>0x</span>';
+        const cls = val > 0 ? 'lev-pos' : 'lev-neg';
+        return `<span class="${cls}">${val>0? '+'+val:val}x</span>`;
+      }
+      html = fmtLev(minLev) + ' to ' + fmtLev(maxLev);
+      document.getElementById('levDisplay').innerHTML = html;
+    }
+    minRange.addEventListener("input", updateLevDisplay);
+    maxRange.addEventListener("input", updateLevDisplay);
+    updateLevDisplay();
+
+</script>
 </body>
 </html>
