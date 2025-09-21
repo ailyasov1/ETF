@@ -227,12 +227,61 @@
     #ticker-content .pos { color: #16a34a; font-weight: 600; }
     #ticker-content .neg { color: #dc2626; font-weight: 600; }
 
+  
+    /* Robust pause-on-hover support */
+    #ticker-bar:hover .scroll-inner,
+    #ticker-content:hover .scroll-inner {
+      animation-play-state: paused !important;
+    }
+
+  
+    /* Restore header title style */
+    h1 {
+      font-family: 'Inter', sans-serif;
+      font-size: 28px;
+      font-weight: 700;
+      color: #111827;
+      margin: 20px 0;
+      display: inline-block;
+    }
+    /* Restore search box style */
+    #table_filter input[type=search] {
+      font-family: 'Inter', sans-serif;
+      font-size: 14px;
+      border: 1px solid #d1d5db;
+      border-radius: 6px;
+      padding: 6px 10px;
+      margin-left: 8px;
+      outline: none;
+    }
+    #table_filter label {
+      font-family: 'Inter', sans-serif;
+      font-size: 14px;
+      font-weight: 500;
+      color: #111827;
+    }
+
+  
+    /* Align title and search box in same row */
+    .header-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 12px;
+    }
+    .header-row h1 {
+      margin: 0;
+    }
+    .header-row div.dataTables_filter {
+      margin: 0;
+    }
+
   </style>
 </head>
 <body>
   <header>
     <div class="container">
-      <h1>Leveraged Single-Stock ETF Catalog</h1>
+      <div class="header-row"><h1>Leveraged Single-Stock ETF Catalog</h1><div id="search-placeholder"></div></div>
       <input id="q" type="search" placeholder="Search..." />
     </div>
   </header>
@@ -489,21 +538,40 @@ async function updateTickerBar() {
       inner.style.animation = "none";
       inner.offsetHeight;
       inner.style.animation = `scroll ${duration}s linear infinite`;
-    }
-  } catch (e) {
-    console.error("Ticker fetch failed", e);
-    // Retry in 15 seconds if failed
-    setTimeout(updateTickerBar, 15000);
-  }
-}
-
-document.addEventListener("DOMContentLoaded", () => {
-  setTimeout(updateTickerBar, 2000); // wait for table
-});
+      // If currently hovered, keep it paused after rebuild
+      const bar = document.getElementById('ticker-bar');
+      if (bar && bar.matches(':hover')) {
+        inner.style.animationPlayState = 'paused';
+      }
+    });
 setInterval(updateTickerBar, 60000);
 const observer = new MutationObserver(updateTickerBar);
 observer.observe(document.querySelector("#table tbody"), { childList: true });
 
+
+
+// JS fallback for pause-on-hover
+(function(){
+  const bar = document.getElementById('ticker-bar');
+  function setPlayState(state){
+    const inner = document.querySelector('#ticker-content .scroll-inner');
+    if (inner) inner.style.animationPlayState = state;
+  }
+  if (bar){
+    bar.addEventListener('mouseenter', ()=>setPlayState('paused'));
+    bar.addEventListener('mouseleave', ()=>setPlayState('running'));
+  }
+})();
+
+
+// Move search bar into header row on load
+document.addEventListener("DOMContentLoaded", () => {
+  const filter = document.getElementById("table_filter");
+  const placeholder = document.getElementById("search-placeholder");
+  if (filter && placeholder) {
+    placeholder.appendChild(filter);
+  }
+});
 
 </script>
 </body>
