@@ -5,90 +5,30 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Leveraged Single-Stock ETF Catalog</title>
   <style>
+    body { font:14px system-ui; background:#fafafa; color:#111; margin:0; }
+    header { background:#fff; border-bottom:1px solid #ccc; padding:12px; position:sticky; top:0; }
+    input[type="search"] { padding:6px; width:250px; }
+    .container { max-width:1120px; margin:0 auto; padding:16px; }
+    .card { background:#fff; border:1px solid #ddd; border-radius:8px; padding:12px; margin:12px 0; }
+    table { width:100%; border-collapse:collapse; table-layout:fixed; }
+    th, td { padding:8px 10px; border-bottom:1px solid #eee; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+    thead th { background:#f6f7fb; cursor:pointer; font-size:12px; font-weight:600; position:sticky; top:48px; }
+    tbody tr:hover { background:#f9fafb; }
+    .right { text-align:right; }
+    .lev-pos { color:#166534; background:#dcfce7; padding:2px 6px; border-radius:6px; }
+    .lev-neg { color:#9f1239; background:#ffe4e6; padding:2px 6px; border-radius:6px; }
+    .hidden { display:none; }
+  
+    #table thead th:nth-child(3) { width: 32%; }  /* Name */
+    #table thead th:nth-child(4) { width: 18%; }  /* Issuer */
 
-    :root {
-      --bg: #fafafa;
-      --card: #ffffff;
-      --border: #e6e6e6;
-      --text: #0f172a;
-      --muted: #6b7280;
-      --accent: #111827;
-      --green-bg: #dcfce7;
-      --green-fg: #166534;
-      --red-bg: #ffe4e6;
-      --red-fg: #9f1239;
-      --blue: #2563eb;
-      --shadow: 0 1px 2px rgba(0,0,0,.04), 0 4px 12px rgba(0,0,0,.04);
-    }
-    * { box-sizing: border-box; }
-    html, body { height: 100%; }
-    
-    body {
-      margin: 0;
-      background: linear-gradient(180deg, #fafafa, #fff);
-      color: var(--text);
-      font: 14px/1.45 system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji", "Segoe UI Emoji";
-    }
-    header.topbar {
-      position: sticky; top: 0; z-index: 10;
-      backdrop-filter: blur(8px);
-      background: rgba(255,255,255,.75);
-      border-bottom: 1px solid var(--border);
-    }
-    .container { max-width: 1120px; margin: 0 auto; padding: 16px; }
-    .brand {
-      display: grid; place-items: center;
-      width: 36px; height: 36px; border-radius: 12px;
-      background: #000; color: #fff; font-weight: 700;
-    }
-    .row { display: flex; align-items: center; gap: 12px; }
-    .row.grow { justify-content: space-between; }
-    h1 { font-size: 20px; font-weight: 600; margin: 0; letter-spacing: -0.01em; }
-    input[type="search"], select, .btn {
-      font: inherit;
-    }
-    input[type="search"] {
-      width: 320px; max-width: 60vw;
-      border: 1px solid var(--border);
-      border-radius: 12px; padding: 8px 12px;
-      background: #fff;
-    }
-    .card {
-      background: var(--card); border: 1px solid var(--border);
-      border-radius: 16px; box-shadow: var(--shadow);
-    }
-    .card.pad { padding: 16px; }
-    .stats { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; }
-    .stat { padding: 16px; }
-    .stat .label { font-size: 11px; text-transform: uppercase; letter-spacing: .06em; color: var(--muted); }
-    .stat .val { font-size: 22px; font-weight: 600; margin-top: 4px; }
-    .filters { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; }
-    .filters .group { display: flex; align-items: center; gap: 8px; }
-    .pill {
-      display: inline-flex; align-items: center; justify-content: center;
-      padding: 0 8px; height: 24px; border-radius: 999px;
-      font-size: 12px; font-weight: 600;
-    }
-    table { width: 100%; border-collapse: collapse; }
-    
-   
-    thead th {
-      position: sticky; top: 64px;
-      background: #f6f7fb; color: #667085; font-size: 12px; font-weight: 600;
-      text-align: left; padding: 10px; border-bottom: 1px solid var(--border);
-    }
-    tbody td { padding: 12px 10px; border-top: 1px solid var(--border); vertical-align: middle; }
-    tbody tr:hover { background: #f9fafb; }
-    .right { text-align: right; }
-    .mono { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; }
-    .muted { color: var(--muted); }
-    .error { color: #b91c1c; margin-top: 8px; }
-    .hidden { display: none !important; }
-   
-    @media (max-width: 720px) {
-      input[type="search"] { width: 100%; }
-      thead th { top: 112px; }
-    }
+  
+    #table thead th:nth-child(10) { width: 12%; }  /* Dir */
+    #table thead th:nth-child(11) { width: 14%; }  /* Link */
+
+  
+    #table td a { text-decoration: none; color: #2563eb; }
+
   
     #table thead th:nth-child(2) { width: 12%; }  /* Ticker */
     #table thead th:nth-child(5) { width: 18%; }  /* Underlying */
@@ -96,7 +36,14 @@
     #table thead th:nth-child(7) { width: 10%; }  /* Fee */
     #table thead th:nth-child(8) { width: 10%; }  /* Leverage */
     #table thead th:nth-child(9) { width: 10%; }  /* Dir */
-    
+
+  
+    body { font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif; font-size:14px; }
+    thead th { padding: 12px 16px; }
+    tbody td { padding: 12px 16px; line-height: 1.5; }
+    tbody tr:hover { background-color: #f3f4f6; }
+    .card { border-radius: 12px; box-shadow: 0 2px 6px rgba(0,0,0,0.08); }
+
   </style>
 </head>
 <body>
